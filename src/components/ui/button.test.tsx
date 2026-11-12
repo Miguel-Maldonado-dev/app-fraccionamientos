@@ -14,4 +14,17 @@ describe('Button', () => {
     render(<Button variant="secondary">Cancelar</Button>)
     expect(screen.getByRole('button', { name: 'Cancelar' }).className).toContain('bg-card')
   })
+
+  it('tertiary usa el token tertiary', () => {
+    render(<Button variant="tertiary">Ver</Button>)
+    expect(screen.getByRole('button', { name: 'Ver' }).className).toContain('bg-tertiary')
+  })
+
+  it('por defecto mide 44 px y tiene anillo de foco', () => {
+    render(<Button>Guardar</Button>)
+    const cls = screen.getByRole('button', { name: 'Guardar' }).className
+    expect(cls).toContain('h-11')
+    expect(cls).toContain('focus-visible:ring-2')
+    expect(cls).toContain('disabled:cursor-not-allowed')
+  })
 })

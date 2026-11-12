@@ -87,7 +87,7 @@ export function GenerarCuotaDomicilioDialog({
       <form id={FORM_ID} onSubmit={handleSubmit} className="grid gap-4" noValidate>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="cuota-anio" className="text-xs font-medium">
-            Año <span className="text-danger">*</span>
+            Año <span className="text-danger-foreground">*</span>
           </Label>
           <Select value={String(anio)} onValueChange={(v) => setAnio(Number(v))}>
             <SelectTrigger id="cuota-anio" className="w-full">
@@ -104,7 +104,7 @@ export function GenerarCuotaDomicilioDialog({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="cuota-mes" className="text-xs font-medium">
-            Mes <span className="text-danger">*</span>
+            Mes <span className="text-danger-foreground">*</span>
           </Label>
           <Select value={String(mes)} onValueChange={(v) => setMes(Number(v))}>
             <SelectTrigger id="cuota-mes" className="w-full">

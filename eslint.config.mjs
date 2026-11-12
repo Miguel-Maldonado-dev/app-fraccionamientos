@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Código de herramientas y temporales de Supabase: fuera del lint de la app.
+    ".agents/**",
+    ".claude/**",
+    "supabase/.temp/**",
   ]),
 ]);
 

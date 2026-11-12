@@ -30,6 +30,14 @@ describe('CatalogoDialog', () => {
     expect(guardarCatalogo).toHaveBeenCalledWith('descuentos', null, { nombre: 'Comité', importe: 250 })
   })
 
+  it('con la prop guardar usa esa acción en lugar de la de Configuración', async () => {
+    const guardar = vi.fn().mockResolvedValue({ ok: true, data: undefined })
+    const user = await abrir({ catalogo: 'recargos', item, guardar })
+    await user.click(screen.getByRole('button', { name: 'Guardar' }))
+    expect(guardar).toHaveBeenCalledWith('recargos', 4, { nombre: 'Pago tardío', importe: 50 })
+    expect(guardarCatalogo).not.toHaveBeenCalled()
+  })
+
   it('rechaza importes con coma sin llamar a la acción', async () => {
     const user = await abrir()
     await user.type(screen.getByLabelText(/Nombre/), 'Comité')

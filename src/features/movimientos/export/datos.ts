@@ -10,7 +10,12 @@ export type FilaExport = { tipo: string; descripcion: string; importe: number; f
 
 export type FiltrosMovimientos = { query: string; anio: number | null; mes: number | null; tipo: number | null }
 
-export type MetaExport = { filtros: string; generado: string; totales: { ingresos: number; egresos: number } }
+export type MetaExport = {
+  filtros: string
+  generado: string
+  fraccionamientoNombre: string
+  totales: { ingresos: number; egresos: number }
+}
 
 export function filasExport(rows: Movimiento[]): FilaExport[] {
   return rows.map((r) => {

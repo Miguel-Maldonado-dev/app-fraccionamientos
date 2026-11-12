@@ -16,7 +16,7 @@ import { todayISO } from '@/lib/dates'
 import { formatMoney } from '@/lib/format'
 import type { Tables } from '@/lib/supabase/types'
 import { registrarPagoCuota } from '../actions'
-import { MSG_PAGO_OK, MSG_PAGO_YA_EXISTIA, MSG_SIN_RECIBO } from '../messages'
+import { MSG_PAGO_OK, MSG_PAGO_YA_EXISTIA } from '../messages'
 import { pagoCuotaSchema } from '../schemas'
 
 const MSG_ERROR_GENERICO = 'Ocurrió un error inesperado. Intenta de nuevo.'
@@ -57,7 +57,6 @@ export function RegistrarPagoCuotaDialog({
           toast.info(MSG_PAGO_YA_EXISTIA)
         } else {
           toast.success(MSG_PAGO_OK)
-          if (!result.data.reciboGenerado) toast.warning(MSG_SIN_RECIBO)
         }
         setOpen(false)
         router.refresh()
@@ -119,14 +118,14 @@ export function RegistrarPagoCuotaDialog({
         </dl>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="fechaPago" className="text-xs font-medium">
-            Fecha de Pago <span className="text-danger">*</span>
+            Fecha de Pago <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="fechaPago" type="date" max={todayISO()} {...register('fechaPago')} />
-          {errors.fechaPago && <p className="text-xs text-danger">{errors.fechaPago.message}</p>}
+          {errors.fechaPago && <p className="text-xs text-danger-foreground">{errors.fechaPago.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="metodoPagoId" className="text-xs font-medium">
-            Método de Pago <span className="text-danger">*</span>
+            Método de Pago <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
@@ -146,7 +145,7 @@ export function RegistrarPagoCuotaDialog({
               </Select>
             )}
           />
-          {errors.metodoPagoId && <p className="text-xs text-danger">Selecciona un método de pago</p>}
+          {errors.metodoPagoId && <p className="text-xs text-danger-foreground">Selecciona un método de pago</p>}
         </div>
       </form>
     </FormDialog>

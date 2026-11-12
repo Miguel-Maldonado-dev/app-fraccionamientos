@@ -5,11 +5,11 @@ import { Money } from './money'
 describe('Money', () => {
   it('ingreso', () => {
     render(<Money value={1234.5} variant="ingreso" />)
-    expect(screen.getByText('+ $1,234.50')).toHaveClass('text-success')
+    expect(screen.getByText('+ $1,234.50')).toHaveClass('text-success-foreground')
   })
   it('egreso', () => {
     render(<Money value={10} variant="egreso" />)
-    expect(screen.getByText('- $10.00')).toHaveClass('text-danger')
+    expect(screen.getByText('- $10.00')).toHaveClass('text-danger-foreground')
   })
   it('sin variante', () => {
     render(<Money value={5} />)

@@ -4,24 +4,37 @@ import { StatusBadge } from './status-badge'
 
 describe('StatusBadge', () => {
   it.each([
-    ['Pagado', 'bg-success-light'],
-    ['Al corriente', 'bg-success-light'],
-    ['Activo', 'bg-success-light'],
-    ['Pendiente', 'bg-warning-light'],
-    ['Vencido', 'bg-danger-light'],
-    ['Moroso', 'bg-danger-light'],
-    ['Inactivo', 'bg-danger-light'],
-    ['Administrador', 'bg-primary-light'],
-    ['Tesorero', 'bg-info-light'],
-    ['Otro', 'bg-muted'],
-  ])('%s usa %s', (status, cls) => {
+    ['Pagado', 'success'],
+    ['Al corriente', 'success'],
+    ['Activo', 'success'],
+    ['Pendiente', 'warning'],
+    ['En gracia', 'warning'],
+    ['Vencido', 'danger'],
+    ['Moroso', 'danger'],
+    ['Inactivo', 'neutral'],
+    ['Tesorero', 'info'],
+    ['Otro', 'neutral'],
+  ])('%s usa el tono %s', (status, tone) => {
     render(<StatusBadge status={status} />)
-    expect(screen.getByText(status)).toHaveClass(cls)
+    const el = screen.getByText(status)
+    expect(el).toHaveClass(`bg-${tone}-light`)
+    expect(el).toHaveClass(`text-${tone}-foreground`)
+    expect(el.firstElementChild).toHaveClass(`bg-${tone}`)
+  })
+
+  it('Pendiente no usa el texto de marca del tono', () => {
+    render(<StatusBadge status="Pendiente" />)
+    expect(screen.getByText('Pendiente')).not.toHaveClass('text-warning')
+  })
+
+  it('Administrador usa primario', () => {
+    render(<StatusBadge status="Administrador" />)
+    expect(screen.getByText('Administrador')).toHaveClass('bg-primary-light')
   })
 
   it('null renderiza vacío con estilo neutro', () => {
     const { container } = render(<StatusBadge status={null} />)
-    expect(container.firstElementChild).toHaveClass('bg-muted')
+    expect(container.firstElementChild).toHaveClass('bg-neutral-light')
     expect(container.firstElementChild).toHaveTextContent('')
   })
 })

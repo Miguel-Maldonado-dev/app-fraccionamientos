@@ -10,8 +10,7 @@ const row = (o: Partial<DomicilioInfo>): DomicilioInfo => ({
   residente_principal: 'Ana',
   id_concepto: null,
   tipo_cuota: null,
-  acceso_telefono: null,
-  acceso_tarjeta: null,
+  medios: null,
   estatus: 'Al corriente',
   ...o,
 })

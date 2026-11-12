@@ -25,7 +25,20 @@ const FECHA_OPTIONS = [
   { value: 'ultimo-anio', label: 'Último año' },
 ]
 
-export function DomiciliosView({ rows }: { rows: DomicilioInfo[] }) {
+export function DomiciliosView({
+  rows,
+  mostrarEstatus = true,
+  mostrarTipoCuota = false,
+  hrefBase,
+  emptyDescription,
+}: {
+  rows: DomicilioInfo[]
+  /** Con `false` (consola del super admin) no hay estatus, métricas de pago ni filtro de estatus. */
+  mostrarEstatus?: boolean
+  mostrarTipoCuota?: boolean
+  hrefBase?: string
+  emptyDescription?: string
+}) {
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query, 300)
   const [estatus, setEstatus] = useState<string | null>(null)
@@ -38,8 +51,8 @@ export function DomiciliosView({ rows }: { rows: DomicilioInfo[] }) {
   )
   const m = useMemo(() => domiciliosMetrics(filtradas), [filtradas])
 
-  const items: MetricCardProps[] = [
-    { label: 'Total de unidades', value: String(m.total), icon: Building2, tone: 'primary' },
+  const total: MetricCardProps = { label: 'Total de unidades', value: String(m.total), icon: Building2, tone: 'primary' }
+  const metricasPago: MetricCardProps[] = [
     {
       label: 'Al corriente',
       value: String(m.alCorriente),
@@ -58,6 +71,7 @@ export function DomiciliosView({ rows }: { rows: DomicilioInfo[] }) {
           : undefined,
     },
   ]
+  const items = mostrarEstatus ? [total, ...metricasPago] : [total]
 
   return (
     <div className="space-y-6">
@@ -70,15 +84,17 @@ export function DomiciliosView({ rows }: { rows: DomicilioInfo[] }) {
         }}
       >
         <SearchInput id="dom-q" value={query} onChange={setQuery} placeholder="Buscar por dirección o residente..." />
-        <LabeledSelect
-          id="dom-estatus"
-          label="Estatus"
-          icon={ListFilter}
-          allLabel="Todos los estatus"
-          value={estatus}
-          onChange={setEstatus}
-          options={ESTATUS_OPTIONS}
-        />
+        {mostrarEstatus && (
+          <LabeledSelect
+            id="dom-estatus"
+            label="Estatus"
+            icon={ListFilter}
+            allLabel="Todos los estatus"
+            value={estatus}
+            onChange={setEstatus}
+            options={ESTATUS_OPTIONS}
+          />
+        )}
         <LabeledSelect
           id="dom-fecha"
           label="Fecha de registro"
@@ -89,7 +105,13 @@ export function DomiciliosView({ rows }: { rows: DomicilioInfo[] }) {
         />
       </FilterBar>
       <Card className="p-0">
-        <DomiciliosTable rows={filtradas} />
+        <DomiciliosTable
+          rows={filtradas}
+          mostrarEstatus={mostrarEstatus}
+          mostrarTipoCuota={mostrarTipoCuota}
+          hrefBase={hrefBase}
+          emptyDescription={emptyDescription}
+        />
       </Card>
     </div>
   )

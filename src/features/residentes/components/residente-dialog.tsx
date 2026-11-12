@@ -15,17 +15,25 @@ import type { Tables } from '@/lib/supabase/types'
 import { actualizarResidente, crearResidente } from '../actions'
 import { MSG_RESIDENTE_ACTUALIZADO, MSG_RESIDENTE_AGREGADO } from '../messages'
 import { residenteSchema, type ResidenteInput } from '../schemas'
+import type { AccionesResidentes } from './acciones'
 
 const FORM_ID = 'residente-form'
+
+const ACCIONES_FRACCIONAMIENTO: Pick<AccionesResidentes, 'crear' | 'actualizar'> = {
+  crear: crearResidente,
+  actualizar: actualizarResidente,
+}
 
 export function ResidenteDialog({
   domicilioId,
   residente,
   trigger,
+  acciones = ACCIONES_FRACCIONAMIENTO,
 }: {
   domicilioId: number
   residente?: Tables<'residentes'>
   trigger: ReactNode
+  acciones?: Pick<AccionesResidentes, 'crear' | 'actualizar'>
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -44,8 +52,8 @@ export function ResidenteDialog({
 
   async function onSubmit(values: ResidenteInput) {
     const result: ActionResult = residente
-      ? await actualizarResidente(residente.id, domicilioId, values)
-      : await crearResidente(domicilioId, values)
+      ? await acciones.actualizar(residente.id, domicilioId, values)
+      : await acciones.crear(domicilioId, values)
     if (result.ok) {
       toast.success(residente ? MSG_RESIDENTE_ACTUALIZADO : MSG_RESIDENTE_AGREGADO)
       setOpen(false)
@@ -86,17 +94,17 @@ export function ResidenteDialog({
       >
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="nombre" className="text-xs font-medium">
-            Nombre <span className="text-danger">*</span>
+            Nombre <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="nombre" {...register('nombre')} />
-          {errors.nombre && <p className="text-xs text-danger">{errors.nombre.message}</p>}
+          {errors.nombre && <p className="text-xs text-danger-foreground">{errors.nombre.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="telefono" className="text-xs font-medium">
             Teléfono
           </Label>
           <Input id="telefono" inputMode="numeric" maxLength={10} {...register('telefono')} />
-          {errors.telefono && <p className="text-xs text-danger">{errors.telefono.message}</p>}
+          {errors.telefono && <p className="text-xs text-danger-foreground">{errors.telefono.message}</p>}
         </div>
         {residente && (
           <div className="flex items-center gap-2">

@@ -7,6 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
+  --font-heading: var(--font-heading);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -47,6 +48,19 @@
   --color-warning-light: var(--warning-light);
   --color-info: var(--info);
   --color-info-light: var(--info-light);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-aqua: var(--brand-aqua);
+  --color-brand-blue-mid: var(--brand-blue-mid);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info-foreground: var(--info-foreground);
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
+  --color-neutral-light: var(--neutral-light);
   --color-avatar-1: var(--avatar-1-bg);
   --color-avatar-1-foreground: var(--avatar-1-fg);
   --color-avatar-2: var(--avatar-2-bg);
@@ -70,35 +84,49 @@
 }
 
 :root {
-  --background: #F6F8FA;
-  --foreground: #111827;
+  --background: #F5F8FC;
+  --foreground: #172536;
   --card: #FFFFFF;
-  --card-foreground: #111827;
+  --card-foreground: #172536;
   --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  --primary: #065F46;
-  --primary-hover: #054E39;
-  --primary-light: #E6F4EF;
+  --popover-foreground: #172536;
+  --primary: #086BB8;
+  --primary-hover: #075A9C;
+  --primary-light: #E7F1FD;
   --primary-foreground: #FFFFFF;
+  --brand-primary: #087BE8;
+  --brand-navy: #071F49;
+  --brand-aqua: #00C7C7;
+  --brand-blue-mid: #087FBD;
+  --brand-gradient: linear-gradient(110deg, #087BE8 0%, #087FBD 50%, #00C7C7 100%);
+  --tertiary: #EAF7F8;
+  --tertiary-foreground: #077389;
   --secondary: #FFFFFF;
-  --secondary-foreground: #111827;
-  --text-secondary: #4B5563;
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
-  --accent: #F3F4F6;
-  --accent-foreground: #111827;
-  --destructive: #B91C1C;
-  --border: #E5E7EB;
-  --input: #E5E7EB;
-  --ring: #065F46;
-  --success: #15803D;
-  --success-light: #DCFCE7;
-  --danger: #B91C1C;
-  --danger-light: #FEE2E2;
-  --warning: #B45309;
-  --warning-light: #FEF3C7;
-  --info: #1D4ED8;
-  --info-light: #DBEAFE;
+  --secondary-foreground: #172536;
+  --text-secondary: #496985;
+  --muted: #EEF3F8;
+  --muted-foreground: #5B6B80;
+  --accent: #EEF3F8;
+  --accent-foreground: #172536;
+  --destructive: #DC4C4C;
+  --border: #E8EEF4;
+  --input: #E8EEF4;
+  --ring: #087BE8;
+  --success: #16A36A;
+  --success-foreground: #0B7A4D;
+  --success-light: #E3F6EE;
+  --danger: #DC4C4C;
+  --danger-foreground: #B42F2F;
+  --danger-light: #FCE8E8;
+  --warning: #E9A23B;
+  --warning-foreground: #8A5300;
+  --warning-light: #FDF1DE;
+  --info: #087BE8;
+  --info-foreground: #0A5FB4;
+  --info-light: #E7F1FD;
+  --neutral: #5B6B80;
+  --neutral-foreground: #475569;
+  --neutral-light: #EEF3F8;
   --avatar-1-bg: #DCFCE7;
   --avatar-1-fg: #166534;
   --avatar-2-bg: #DBEAFE;
@@ -111,21 +139,21 @@
   --avatar-5-fg: #9D174D;
   --avatar-6-bg: #F3F4F6;
   --avatar-6-fg: #374151;
-  --chart-1: #065F46;
-  --chart-2: #15803D;
-  --chart-3: #1D4ED8;
-  --chart-4: #B45309;
-  --chart-5: #B91C1C;
-  --radius: 12px;
+  --chart-1: #087BE8;
+  --chart-2: #00C7C7;
+  --chart-3: #071F49;
+  --chart-4: #E9A23B;
+  --chart-5: #DC4C4C;
+  --radius: 14px;
   --shadow-elevated: 0 4px 12px rgb(16 24 40 / 0.08);
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #111827;
-  --sidebar-primary: #065F46;
+  --sidebar-foreground: #071F49;
+  --sidebar-primary: #086BB8;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F3F4F6;
-  --sidebar-accent-foreground: #111827;
-  --sidebar-border: #E5E7EB;
-  --sidebar-ring: #065F46;
+  --sidebar-accent: #EEF3F8;
+  --sidebar-accent-foreground: #172536;
+  --sidebar-border: #E8EEF4;
+  --sidebar-ring: #087BE8;
 }
 
 @layer base {
@@ -137,5 +165,8 @@
   }
   html {
     @apply font-sans;
+  }
+  h1, h2, h3, h4 {
+    @apply font-heading text-brand-navy;
   }
 }

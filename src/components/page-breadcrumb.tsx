@@ -12,13 +12,13 @@ import {
 
 export type BreadcrumbEntry = { label: string; href?: string }
 
-export function PageBreadcrumb({ items }: { items: BreadcrumbEntry[] }) {
+export function PageBreadcrumb({ items, homeHref = '/' }: { items: BreadcrumbEntry[]; homeHref?: string }) {
   return (
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href="/" aria-label="Inicio">
+            <Link href={homeHref} aria-label="Inicio">
               <Home className="size-4" />
             </Link>
           </BreadcrumbLink>

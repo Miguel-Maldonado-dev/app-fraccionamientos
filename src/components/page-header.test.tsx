@@ -15,6 +15,7 @@ describe('PageHeader', () => {
     expect(screen.getByRole('link', { name: 'Inicio' })).toHaveAttribute('href', '/')
     expect(screen.getAllByText('Domicilios').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByRole('button', { name: 'Nuevo' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveClass('font-heading')
     expect(container.querySelectorAll('li li').length).toBe(0)
   })
 })

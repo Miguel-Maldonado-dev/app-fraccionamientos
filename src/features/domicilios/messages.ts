@@ -1,3 +1,6 @@
 export const MSG_DOMICILIO_CREADO = 'Domicilio agregado correctamente.'
 export const MSG_DOMICILIO_DUPLICADO = 'Este domicilio ya se encuentra registrado.'
 export const MSG_DOMICILIO_ACTUALIZADO = 'Domicilio actualizado correctamente.'
+export const MSG_DOMICILIO_NO_ENCONTRADO = 'El domicilio ya no existe. Recarga la página.'
+export const MSG_ACCESO_YA_EN_ESTADO = 'El acceso ya está en ese estado'
+export const MSG_ACCESO_AJUSTADO = 'Acceso actualizado correctamente.'

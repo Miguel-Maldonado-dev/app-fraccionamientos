@@ -8,19 +8,22 @@ import { Button } from '@/components/ui/button'
 import type { Tables } from '@/lib/supabase/types'
 import { eliminarResidente } from '../actions'
 import { MSG_RESIDENTE_ELIMINADO } from '../messages'
+import type { AccionesResidentes } from './acciones'
 import { ResidenteDialog } from './residente-dialog'
 
 export function ResidenteActions({
   domicilioId,
   residente,
+  acciones,
 }: {
   domicilioId: number
   residente: Tables<'residentes'>
+  acciones?: AccionesResidentes
 }) {
   const router = useRouter()
 
   async function onConfirm() {
-    const result = await eliminarResidente(residente.id, domicilioId)
+    const result = await (acciones?.eliminar ?? eliminarResidente)(residente.id, domicilioId)
     if (!result.ok) throw new Error(result.error)
     toast.success(MSG_RESIDENTE_ELIMINADO)
     router.refresh()
@@ -31,6 +34,7 @@ export function ResidenteActions({
       <ResidenteDialog
         domicilioId={domicilioId}
         residente={residente}
+        acciones={acciones}
         trigger={
           <Button variant="secondary" size="icon-sm" aria-label={`Editar ${residente.nombre}`}>
             <Pencil />

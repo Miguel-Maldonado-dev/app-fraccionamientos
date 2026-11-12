@@ -5,7 +5,7 @@ import { useWatch, type Control } from 'react-hook-form'
 import { CopyButton } from '@/components/copy-button'
 import { Label } from '@/components/ui/label'
 import { desglosarCodigoTarjeta } from '../codigo-tarjeta'
-import type { NumeroInput } from '../schemas'
+import type { TarjetaInput } from '../schemas'
 
 function ValorCopiable({ label, value }: { label: string; value: string }) {
   const id = useId()
@@ -28,13 +28,9 @@ function ValorCopiable({ label, value }: { label: string; value: string }) {
   )
 }
 
-/**
- * Facility y Card ID del código que se está escribiendo. Se suscribe solo al campo `valor`,
- * así que escribir vuelve a renderizar este bloque y no todo el formulario.
- */
-export function CodigoTarjetaDesglose({ control }: { control: Control<NumeroInput> }) {
-  const valor = useWatch({ control, name: 'valor' })
-  const desglose = desglosarCodigoTarjeta(valor ?? '')
+/** Facility y Card ID de un código de tarjeta, de solo lectura y copiables. */
+export function DesgloseTarjeta({ valor }: { valor: string }) {
+  const desglose = desglosarCodigoTarjeta(valor)
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -43,8 +39,17 @@ export function CodigoTarjetaDesglose({ control }: { control: Control<NumeroInpu
         <ValorCopiable label="Card ID" value={desglose.ok ? String(desglose.cardId) : ''} />
       </div>
       {!desglose.ok && desglose.motivo === 'excede-32-bits' ? (
-        <p className="text-xs text-danger">El código excede 32 bits</p>
+        <p className="text-xs text-danger-foreground">El código excede 32 bits</p>
       ) : null}
     </div>
   )
+}
+
+/**
+ * Desglose del código que se está escribiendo. Se suscribe solo al campo `numero`, así que escribir
+ * vuelve a renderizar este bloque y no todo el formulario.
+ */
+export function CodigoTarjetaDesglose({ control }: { control: Control<TarjetaInput> }) {
+  const numero = useWatch({ control, name: 'numero' })
+  return <DesgloseTarjeta valor={numero ?? ''} />
 }

@@ -5,6 +5,9 @@ import { PageBreadcrumb } from '@/components/page-breadcrumb'
 import { Button } from '@/components/ui/button'
 import { AccesosSection } from '@/features/accesos/components/accesos-section'
 import { listTarjetas, listTelefonos } from '@/features/accesos/queries'
+import { SyncEstado } from '@/features/accesos/components/sync-estado'
+import { listTiposCuota } from '@/features/catalogos/queries'
+import { listBotonesConfigurados, listControles } from '@/features/controles/queries'
 import { CuotasSection } from '@/features/cuotas/components/cuotas-section'
 import {
   listAnios,
@@ -13,11 +16,14 @@ import {
   listCuotasDomicilio,
   listMeses,
 } from '@/features/cuotas/queries'
+import { AccesoForzado } from '@/features/domicilios/components/acceso-forzado'
 import { DomicilioInfoCard } from '@/features/domicilios/components/domicilio-info-card'
 import { EditDomicilioDialog } from '@/features/domicilios/components/edit-domicilio-dialog'
 import {
   getDomicilioConcepto,
   getDomicilioInfo,
+  getEstadoAccesoDomicilio,
+  getPermisoDomicilio,
   listConceptosRecurrentes,
   listDomiciliosOptions,
 } from '@/features/domicilios/queries'
@@ -25,13 +31,15 @@ import { PagosExtraSection } from '@/features/pagos/components/pagos-extra-secti
 import { ReciboPorCuota } from '@/features/pagos/components/recibo-por-cuota'
 import { RegistrarPagoCuotaDialog } from '@/features/pagos/components/registrar-pago-cuota-dialog'
 import { listConceptosExtra, listMetodosPago, listPagosExtraDomicilio } from '@/features/pagos/queries'
+import { domicilioSincronizado, getPinDomicilio } from '@/features/pin/queries'
 import { ResidentesSection } from '@/features/residentes/components/residentes-section'
 import { listResidentesDomicilio } from '@/features/residentes/queries'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { hasRole } from '@/lib/auth/require-role'
-import { ROLES_GESTION } from '@/lib/constants'
+import { ROLES, ROLES_GESTION } from '@/lib/constants'
 import { parseRouteId } from '@/lib/route-id'
 import { createClient } from '@/lib/supabase/server'
+import { estadoDeEntidades, estadoDomicilio } from '@/features/sincronizacion/queries'
 
 export default async function DomicilioDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -42,13 +50,13 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
   const domicilio = await getDomicilioInfo(supabase, domicilioId)
   if (!domicilio) notFound()
 
+  const user = await getCurrentUser()
   const [
     concepto,
     conceptos,
     telefonos,
     tarjetas,
     residentes,
-    user,
     cuotas,
     conceptosDescuento,
     conceptosRecargo,
@@ -58,13 +66,19 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
     pagosExtra,
     domicilios,
     conceptosExtra,
+    tiposCuota,
+    controles,
+    botonesConfigurados,
+    sincronizado,
+    permiso,
+    estadoDom,
+    estadoAcceso,
   ] = await Promise.all([
     getDomicilioConcepto(supabase, domicilioId),
     listConceptosRecurrentes(supabase),
     listTelefonos(supabase, domicilioId),
     listTarjetas(supabase, domicilioId),
     listResidentesDomicilio(supabase, domicilioId),
-    getCurrentUser(),
     listCuotasDomicilio(supabase, domicilioId),
     listConceptosDescuento(supabase),
     listConceptosRecargo(supabase),
@@ -74,9 +88,35 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
     listPagosExtraDomicilio(supabase, domicilioId),
     listDomiciliosOptions(supabase),
     listConceptosExtra(supabase),
+    listTiposCuota(supabase),
+    listControles(supabase, domicilioId),
+    listBotonesConfigurados(supabase, null),
+    domicilioSincronizado(supabase, domicilioId),
+    getPermisoDomicilio(supabase, domicilioId),
+    estadoDomicilio(supabase, null, domicilioId),
+    // La RPC solo admite administrador y tesorero; comité y vigilancia no ven el bloque.
+    hasRole(user, ROLES_GESTION) ? getEstadoAccesoDomicilio(supabase, domicilioId) : Promise.resolve(null),
+  ])
+  const puedeGestionar = hasRole(user, ROLES_GESTION)
+  const medios = domicilio.medios ?? []
+  // Comité y vigilancia no leen `pines_acceso` (RLS les da 0 filas, que parecería "sin PIN"): `undefined`.
+  const [estados, estadosControles, pin] = await Promise.all([
+    estadoDeEntidades(
+      supabase,
+      null,
+      'tarjeta',
+      tarjetas.map((t) => t.id),
+    ),
+    estadoDeEntidades(
+      supabase,
+      null,
+      'control',
+      controles.map((c) => c.id),
+    ),
+    puedeGestionar && medios.includes('pin') ? getPinDomicilio(supabase, domicilioId) : undefined,
   ])
 
-  const puedeGestionar = hasRole(user, ROLES_GESTION)
+  const mediosPorConcepto = Object.fromEntries(tiposCuota.map((t) => [t.id, t.medios]))
 
   return (
     <div className="space-y-6">
@@ -91,11 +131,15 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
       </div>
       <DomicilioInfoCard
         domicilio={domicilio}
+        permiso={permiso}
+        sincronizacion={estadoDom ? <SyncEstado estado={estadoDom} puedeReintentar={puedeGestionar} /> : undefined}
         action={
           <EditDomicilioDialog
             domicilio={domicilio}
             conceptos={conceptos}
             conceptoActual={concepto?.concepto_id ?? null}
+            mediosPorConcepto={mediosPorConcepto}
+            registros={{ tarjeta: tarjetas.length, control: controles.length }}
             trigger={
               <Button variant="secondary" size="icon-sm" aria-label="Editar domicilio" title="Editar domicilio">
                 <Pencil />
@@ -104,7 +148,21 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
           />
         }
       />
-      <AccesosSection domicilio={domicilio} telefonos={telefonos} tarjetas={tarjetas} />
+      {estadoAcceso ? (
+        <AccesoForzado domicilioId={domicilioId} estado={estadoAcceso} puedeAjustar={hasRole(user, [ROLES.ADMINISTRADOR])} />
+      ) : null}
+      <AccesosSection
+        domicilio={domicilio}
+        medios={medios}
+        telefonos={telefonos}
+        tarjetas={tarjetas}
+        controles={controles}
+        botonesConfigurados={botonesConfigurados}
+        estados={estados}
+        estadosControles={estadosControles}
+        pin={{ valor: pin, sincronizado }}
+        puedeReintentar={puedeGestionar}
+      />
       <ResidentesSection domicilioId={domicilioId} residentes={residentes} />
       <CuotasSection
         domicilioId={domicilioId}

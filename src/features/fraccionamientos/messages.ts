@@ -1,0 +1,8 @@
+export const MSG_SLUG_DUPLICADO = 'Ya existe un fraccionamiento con ese slug.'
+export const MSG_INSTALACION_DUPLICADA = 'Esa instalación ya está asignada a otro fraccionamiento.'
+export const MSG_FRACCIONAMIENTO_NO_EXISTE = 'El fraccionamiento ya no existe. Recarga la página.'
+export const MSG_USUARIO_NO_EXISTE = 'El usuario ya no existe. Recarga la página.'
+export const MSG_INSTALACION_EN_USO = 'Este fraccionamiento ya tiene domicilios sincronizados con su instalación'
+export const MSG_MEDIO_EN_USO = 'Hay tipos de cuota que usan este medio'
+export const MSG_MEDIO_NO_DISPONIBLE = 'Ese medio de acceso aún no está disponible.'
+export const MSG_SINCRONIZACION_EN_CURSO = 'Hay una sincronización en curso; intenta en unos minutos.'

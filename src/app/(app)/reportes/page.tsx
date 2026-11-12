@@ -1,11 +1,9 @@
-import { AccesoPeatonalTab } from '@/features/reportes/components/acceso-peatonal-tab'
-import { AccesoVehicularTab } from '@/features/reportes/components/acceso-vehicular-tab'
 import { PagosUsuarioTab } from '@/features/reportes/components/pagos-usuario-tab'
 import { ReportesTabs } from '@/features/reportes/components/reportes-tabs'
 import { PageHeader } from '@/components/page-header'
 import { TabsContent } from '@/components/ui/tabs'
 
-const TABS = ['usuario', 'vehicular', 'peatonal'] as const
+const TABS = ['usuario'] as const
 
 function first(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v
@@ -24,7 +22,7 @@ export default async function ReportesPage({
     <div className="space-y-6">
       <PageHeader
         title="Reportes"
-        description="Consulta y genera reportes del fraccionamiento Lago Amadeo."
+        description="Consulta y genera reportes del fraccionamiento."
         breadcrumbs={[{ label: 'Reportes' }]}
       />
       <ReportesTabs tab={tab}>
@@ -36,16 +34,6 @@ export default async function ReportesPage({
               fin={first(sp.fin)}
               metodo={first(sp.metodo)}
             />
-          )}
-        </TabsContent>
-        <TabsContent value="vehicular">
-          {tab === 'vehicular' && (
-            <AccesoVehicularTab anio={first(sp.anio)} mes={first(sp.mes)} buscar={first(sp.buscar)} />
-          )}
-        </TabsContent>
-        <TabsContent value="peatonal">
-          {tab === 'peatonal' && (
-            <AccesoPeatonalTab anio={first(sp.anio)} mes={first(sp.mes)} buscar={first(sp.buscar)} />
           )}
         </TabsContent>
       </ReportesTabs>

@@ -1,26 +1,37 @@
-export function BrandLogo({ size = 40, withText = false }: { size?: number; withText?: boolean }) {
-  const mark = (
-    <svg
-      viewBox="0 0 40 40"
-      width={size}
-      height={size}
-      role="img"
-      aria-label="Lago Amadeo"
+import Image from 'next/image'
+
+const LOGOTIPO = { src: '/brand/weadmi-logotipo.png', w: 1047, h: 217 }
+
+/** Logo oficial de WEADMI: solo los PNG de la marca, con su proporción (logotipo 1047:217, isotipo 1:1). */
+export function BrandLogo({
+  variant = 'logotipo',
+  width,
+  subtitulo,
+  preload,
+}: {
+  variant?: 'logotipo' | 'isotipo'
+  width: number
+  /** Nombre del fraccionamiento, bajo el logotipo. */
+  subtitulo?: string
+  preload?: boolean
+}) {
+  const isotipo = variant === 'isotipo'
+  const height = isotipo ? width : Math.round((width * LOGOTIPO.h) / LOGOTIPO.w)
+  const image = (
+    <Image
+      src={isotipo ? '/brand/weadmi-isotipo.png' : LOGOTIPO.src}
+      alt="WEADMI"
+      width={width}
+      height={height}
+      preload={preload}
       className="shrink-0"
-    >
-      <circle cx="20" cy="20" r="20" className="fill-primary" />
-      <polygon points="8,27 16,13 21,21 25,16 32,27" className="fill-white" />
-      <ellipse cx="20" cy="29" rx="10" ry="3" className="fill-primary-light" />
-    </svg>
+    />
   )
-  if (!withText) return mark
+  if (!subtitulo) return image
   return (
-    <div className="flex items-center gap-3">
-      {mark}
-      <div className="flex flex-col">
-        <span className="text-lg font-semibold leading-tight text-primary">Lago Amadeo</span>
-        <span className="text-[13px] leading-tight text-muted-foreground">Administración</span>
-      </div>
+    <div className="flex min-w-0 flex-col gap-1">
+      {image}
+      <span className="truncate text-[13px] font-medium leading-tight text-secondary-foreground">{subtitulo}</span>
     </div>
   )
 }

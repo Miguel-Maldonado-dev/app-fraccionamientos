@@ -5,21 +5,22 @@ import { cn } from "@/lib/utils"
 import { Slot } from "radix-ui"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent text-sm font-medium whitespace-nowrap transition-colors motion-reduce:transition-none outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent text-sm font-semibold whitespace-nowrap transition-colors motion-reduce:transition-none outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary-hover",
         secondary:
-          "border-border bg-card text-foreground hover:bg-muted aria-expanded:bg-muted",
+          "border-border bg-card text-brand-navy hover:bg-muted aria-expanded:bg-muted",
+        tertiary: "bg-tertiary text-tertiary-foreground hover:bg-tertiary/90",
         ghost: "text-foreground hover:bg-muted aria-expanded:bg-muted",
-        destructive: "bg-danger text-white hover:bg-danger/90",
+        destructive: "bg-danger-foreground text-white hover:bg-danger-foreground/90",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 gap-2 px-4",
+        default: "h-11 gap-2 px-4",
         sm: "h-9 gap-1.5 px-3 text-[13px]",
-        icon: "size-10",
+        icon: "size-9",
         "icon-sm": "size-9 relative after:absolute after:-inset-0.5 after:content-['']",
       },
     },

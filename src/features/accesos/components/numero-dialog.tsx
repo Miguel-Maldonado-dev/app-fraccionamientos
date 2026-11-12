@@ -10,60 +10,33 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { ActionResult } from '@/lib/action-result'
-import {
-  actualizarTarjeta,
-  actualizarTelefono,
-  crearTarjeta,
-  crearTelefono,
-} from '../actions'
-import { MSG_TARJETA_GUARDADA, MSG_TELEFONO_GUARDADO } from '../messages'
+import { actualizarTelefono, crearTelefono } from '../actions'
+import { MSG_TELEFONO_GUARDADO } from '../messages'
 import { numeroSchema, type NumeroInput } from '../schemas'
-import { CodigoTarjetaDesglose } from './codigo-tarjeta-desglose'
-
-export type AccesoKind = 'telefono' | 'tarjeta'
+import type { AccionesAccesos } from './acciones'
 
 const FORM_ID = 'numero-form'
 
-const KINDS = {
-  telefono: {
-    addTitle: 'Agregar Número',
-    editTitle: 'Editar Número',
-    addDescription: 'Agrega un número de teléfono con acceso al fraccionamiento.',
-    editDescription: 'Actualiza el número de teléfono con acceso al fraccionamiento.',
-    label: 'Número de teléfono',
-    saved: MSG_TELEFONO_GUARDADO,
-    create: crearTelefono,
-    update: actualizarTelefono,
-  },
-  tarjeta: {
-    addTitle: 'Agregar Tarjeta',
-    editTitle: 'Editar Tarjeta',
-    addDescription: 'Agrega una tarjeta con acceso al fraccionamiento.',
-    editDescription: 'Actualiza el número de la tarjeta de acceso.',
-    label: 'Número de tarjeta',
-    saved: MSG_TARJETA_GUARDADA,
-    create: crearTarjeta,
-    update: actualizarTarjeta,
-  },
-} as const
+type AccionesNumero = Pick<AccionesAccesos, 'crearTelefono' | 'actualizarTelefono'>
 
+const ACCIONES_FRACCIONAMIENTO: AccionesNumero = { crearTelefono, actualizarTelefono }
+
+/** Alta y edición de un número de teléfono con acceso. Las tarjetas usan `TarjetaDialog`. */
 export function NumeroDialog({
-  kind,
   domicilioId,
   item,
   trigger,
+  acciones = ACCIONES_FRACCIONAMIENTO,
 }: {
-  kind: AccesoKind
   domicilioId: number
   item?: { id: number; valor: string }
   trigger: ReactNode
+  acciones?: AccionesNumero
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const config = KINDS[kind]
   const {
     register,
-    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
@@ -74,10 +47,10 @@ export function NumeroDialog({
 
   async function onSubmit({ valor }: NumeroInput) {
     const result: ActionResult = item
-      ? await config.update(item.id, domicilioId, valor)
-      : await config.create(domicilioId, valor)
+      ? await acciones.actualizarTelefono(item.id, domicilioId, valor)
+      : await acciones.crearTelefono(domicilioId, valor)
     if (result.ok) {
-      toast.success(config.saved)
+      toast.success(MSG_TELEFONO_GUARDADO)
       setOpen(false)
       router.refresh()
     } else {
@@ -92,8 +65,12 @@ export function NumeroDialog({
 
   return (
     <FormDialog
-      title={item ? config.editTitle : config.addTitle}
-      description={item ? config.editDescription : config.addDescription}
+      title={item ? 'Editar Número' : 'Agregar Número'}
+      description={
+        item
+          ? 'Actualiza el número de teléfono con acceso al fraccionamiento.'
+          : 'Agrega un número de teléfono con acceso al fraccionamiento.'
+      }
       trigger={trigger}
       open={open}
       onOpenChange={handleOpenChange}
@@ -116,12 +93,11 @@ export function NumeroDialog({
       >
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="valor" className="text-xs font-medium">
-            {config.label} <span className="text-danger">*</span>
+            Número de teléfono <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="valor" inputMode="numeric" maxLength={10} {...register('valor')} />
-          {errors.valor && <p className="text-xs text-danger">{errors.valor.message}</p>}
+          {errors.valor && <p className="text-xs text-danger-foreground">{errors.valor.message}</p>}
         </div>
-        {kind === 'tarjeta' ? <CodigoTarjetaDesglose control={control} /> : null}
       </form>
     </FormDialog>
   )

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Toaster } from '@/components/ui/sonner'
+import { PRODUCTO } from '@/lib/constants'
 import './globals.css'
 
 // Inter va incluida en el proyecto (subconjunto latin, fuente variable 100–900): con
@@ -12,16 +13,24 @@ const inter = localFont({
   display: 'swap',
 })
 
+// Sora (títulos): fuente variable local, subconjunto latin, pesos 600–800.
+const sora = localFont({
+  src: './fonts/sora-latin-wght-normal.woff2',
+  variable: '--font-heading',
+  weight: '600 800',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
-  title: 'Lago Amadeo',
-  description: 'Administración de Lago Amadeo',
+  title: PRODUCTO,
+  description: 'WEADMI · Gestión residencial',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="es"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${inter.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

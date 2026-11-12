@@ -9,6 +9,7 @@ vi.mock('@/features/auth/actions', () => ({ login: vi.fn() }))
 describe('LoginForm', () => {
   it('renderiza etiquetas, botón y pie', () => {
     render(<LoginForm />)
+    expect(screen.getByRole('img', { name: 'WEADMI' })).toBeInTheDocument()
     expect(screen.getByText('Bienvenido')).toBeInTheDocument()
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByLabelText('Contraseña')).toBeInTheDocument()

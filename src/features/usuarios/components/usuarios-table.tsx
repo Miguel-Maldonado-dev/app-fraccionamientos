@@ -3,20 +3,28 @@
 import { DataTable, type Column } from '@/components/data-table'
 import { PersonCell } from '@/components/person-cell'
 import { StatusBadge } from '@/components/status-badge'
-import type { Tables, Views } from '@/lib/supabase/types'
+import { ROL_LABEL } from '@/lib/constants'
+import type { ActionResult } from '@/lib/action-result'
+import type { Views } from '@/lib/supabase/types'
 import { UsuarioActions } from './usuario-actions'
 
 type Row = Views<'users_info'>
 
+/** Props opcionales para reutilizar la tabla fuera de /usuarios (p. ej. la consola del super admin). */
+export type OpcionesUsuarios = {
+  cambiarEstado?: (id: string, activo: boolean) => Promise<ActionResult>
+  permitirEditar?: boolean
+}
+
 export function UsuariosTable({
   rows,
-  roles,
   currentUserId,
+  cambiarEstado,
+  permitirEditar = true,
 }: {
   rows: Row[]
-  roles: Tables<'roles'>[]
   currentUserId: string
-}) {
+} & OpcionesUsuarios) {
   const columns: Column<Row>[] = [
     {
       key: 'user_name',
@@ -37,10 +45,10 @@ export function UsuariosTable({
       sortValue: (r) => r.email ?? '',
     },
     {
-      key: 'role_name',
+      key: 'rol',
       header: 'Rol',
-      cell: (r) => (r.role_name ? <StatusBadge status={r.role_name} /> : '—'),
-      sortValue: (r) => r.role_name ?? '',
+      cell: (r) => (r.rol ? <StatusBadge status={ROL_LABEL[r.rol]} /> : '—'),
+      sortValue: (r) => (r.rol ? ROL_LABEL[r.rol] : ''),
     },
     {
       key: 'estatus',
@@ -51,7 +59,14 @@ export function UsuariosTable({
       key: 'acciones',
       header: 'Acciones',
       align: 'right',
-      cell: (r) => <UsuarioActions usuario={r} roles={roles} currentUserId={currentUserId} />,
+      cell: (r) => (
+        <UsuarioActions
+          usuario={r}
+          currentUserId={currentUserId}
+          cambiarEstado={cambiarEstado}
+          permitirEditar={permitirEditar}
+        />
+      ),
     },
   ]
   return (

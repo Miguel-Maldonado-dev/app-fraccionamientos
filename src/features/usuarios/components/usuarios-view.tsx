@@ -1,16 +1,16 @@
 'use client'
 
 import { Users } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { FilterBar } from '@/components/filter-bar'
 import { LabeledSelect } from '@/components/labeled-select'
 import { SearchInput } from '@/components/search-input'
 import { Card } from '@/components/ui/card'
 import { matches } from '@/lib/search'
-import type { Tables, Views } from '@/lib/supabase/types'
+import type { Views } from '@/lib/supabase/types'
 import { useDebouncedValue } from '@/lib/use-debounced-value'
-import { UsuariosTable } from './usuarios-table'
+import { UsuariosTable, type OpcionesUsuarios } from './usuarios-table'
 
 const ESTADO_OPTIONS = [
   { value: 'activos', label: 'Activos' },
@@ -19,16 +19,26 @@ const ESTADO_OPTIONS = [
 
 export function UsuariosView({
   rows,
-  roles,
   currentUserId,
   estado,
+  cambiarEstado,
+  permitirEditar = true,
 }: {
   rows: Views<'users_info'>[]
-  roles: Tables<'roles'>[]
   currentUserId: string
   estado: 'activos' | 'inactivos'
-}) {
+} & OpcionesUsuarios) {
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  // Conserva los demás parámetros (p. ej. `tab` en la consola): solo `estado` cambia.
+  const irA = (estadoNuevo: string | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (estadoNuevo === null) params.delete('estado')
+    else params.set('estado', estadoNuevo)
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query, 300)
   const filtradas = useMemo(
@@ -41,7 +51,7 @@ export function UsuariosView({
       <FilterBar
         onClear={() => {
           setQuery('')
-          router.replace('/usuarios')
+          irA(null)
         }}
       >
         <SearchInput id="usr-q" value={query} onChange={setQuery} placeholder="Buscar por nombre o email..." />
@@ -51,11 +61,16 @@ export function UsuariosView({
           icon={Users}
           options={ESTADO_OPTIONS}
           value={estado}
-          onChange={(v) => router.replace('/usuarios?estado=' + (v ?? 'activos'))}
+          onChange={(v) => irA(v ?? 'activos')}
         />
       </FilterBar>
       <Card className="p-0">
-        <UsuariosTable rows={filtradas} roles={roles} currentUserId={currentUserId} />
+        <UsuariosTable
+          rows={filtradas}
+          currentUserId={currentUserId}
+          cambiarEstado={cambiarEstado}
+          permitirEditar={permitirEditar}
+        />
       </Card>
     </div>
   )

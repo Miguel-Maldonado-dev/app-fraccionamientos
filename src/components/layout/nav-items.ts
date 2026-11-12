@@ -2,6 +2,7 @@ import {
   Banknote,
   BarChart3,
   Home,
+  KeyRound,
   Landmark,
   Receipt,
   Settings,
@@ -18,6 +19,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Inicio', href: '/', icon: Home },
   { label: 'Domicilios', href: '/domicilios', icon: Building2 },
   { label: 'Residentes', href: '/residentes', icon: Users },
+  { label: 'Accesos', href: '/accesos', icon: KeyRound, roles: [ROLES.ADMINISTRADOR, ROLES.TESORERO] },
   { label: 'Cuotas', href: '/cuotas', icon: Receipt },
   { label: 'Pagos', href: '/pagos', icon: Banknote },
   { label: 'Movimientos Financieros', href: '/movimientos', icon: Landmark },
@@ -33,4 +35,16 @@ export const NAV_ITEMS: NavItem[] = [
  */
 export function visibleNavItems(roleName: RoleName | null): NavItem[] {
   return NAV_ITEMS.filter((item) => !item.roles || (roleName !== null && item.roles.includes(roleName)))
+}
+
+export type VarianteShell = 'fraccionamiento' | 'plataforma'
+
+/** Menú de la consola del super admin. */
+export const ADMIN_NAV_ITEMS: NavItem[] = [
+  { label: 'Inicio', href: '/admin', icon: Home },
+  { label: 'Fraccionamientos', href: '/admin/fraccionamientos', icon: Building2 },
+]
+
+export function navItemsPara(variante: VarianteShell, roleName: RoleName | null): NavItem[] {
+  return variante === 'plataforma' ? ADMIN_NAV_ITEMS : visibleNavItems(roleName)
 }

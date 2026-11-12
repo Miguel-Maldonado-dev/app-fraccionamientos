@@ -64,13 +64,13 @@ export function MetricCard({
           data-slot="metric-icon"
           className={cn('flex shrink-0 items-center justify-center rounded-full', d.icon, METRIC_TONE_CLASSES[tone])}
         >
-          <Icon className={d.glyph} aria-hidden="true" />
+          <Icon className={d.glyph} strokeWidth={1.75} aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] text-muted-foreground" title={label}>
+          <p className="truncate text-xs font-medium text-secondary-foreground" title={label}>
             {label}
           </p>
-          <p className={cn('whitespace-nowrap font-bold tabular-nums', d.value)}>{value}</p>
+          <p className={cn('whitespace-nowrap font-heading font-semibold tabular-nums text-brand-navy', d.value)}>{value}</p>
           {helper ? <p className="text-[13px] text-muted-foreground">{helper}</p> : null}
         </div>
         {badge ? (

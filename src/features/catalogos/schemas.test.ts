@@ -42,10 +42,46 @@ describe('catalogoSchema', () => {
 })
 
 describe('tipoCuotaSchema', () => {
-  it('exige los dos accesos booleanos', () => {
+  const PERFIL = 'aaaaaaaa-0000-0000-0000-000000000001'
+
+  it('exige el arreglo de medios', () => {
     expect(tipoCuotaSchema.safeParse({ nombre: 'X', importe: '1' }).success).toBe(false)
-    expect(
-      tipoCuotaSchema.parse({ nombre: 'X', importe: '1', accesoTelefono: true, accesoTarjeta: false }),
-    ).toEqual({ nombre: 'X', importe: 1, accesoTelefono: true, accesoTarjeta: false })
+    expect(tipoCuotaSchema.parse({ nombre: 'X', importe: '1', medios: ['tarjeta', 'telefono'] })).toEqual({
+      nombre: 'X',
+      importe: 1,
+      medios: ['tarjeta', 'telefono'],
+      perfilCorrienteId: null,
+      perfilCorrienteNombre: null,
+      perfilMorosoId: null,
+      perfilMorosoNombre: null,
+    })
+  })
+
+  it('rechaza medios desconocidos', () => {
+    expect(tipoCuotaSchema.safeParse({ nombre: 'X', importe: '1', medios: ['llave'] }).success).toBe(false)
+  })
+
+  it('acepta los permisos como uuid y convierte el vacío en null', () => {
+    const r = tipoCuotaSchema.parse({
+      nombre: 'X',
+      importe: '1',
+      medios: [],
+      perfilCorrienteId: PERFIL,
+      perfilCorrienteNombre: 'Residentes',
+      perfilMorosoId: '',
+      perfilMorosoNombre: '',
+    })
+    expect(r).toMatchObject({
+      perfilCorrienteId: PERFIL,
+      perfilCorrienteNombre: 'Residentes',
+      perfilMorosoId: null,
+      perfilMorosoNombre: null,
+    })
+  })
+
+  it('rechaza un permiso que no es uuid', () => {
+    expect(tipoCuotaSchema.safeParse({ nombre: 'X', importe: '1', medios: [], perfilMorosoId: 'abc' }).success).toBe(
+      false,
+    )
   })
 })

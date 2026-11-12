@@ -2,8 +2,8 @@ import { notFound } from 'next/navigation'
 import { PageHeader } from '@/components/page-header'
 import { AddUserDialog } from '@/features/usuarios/components/add-user-dialog'
 import { UsuariosView } from '@/features/usuarios/components/usuarios-view'
-import { listRoles, listUsuarios } from '@/features/usuarios/queries'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { listUsuarios } from '@/features/usuarios/queries'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { AuthorizationError, requireRole } from '@/lib/auth/require-role'
 import { ROLES } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
@@ -26,21 +26,20 @@ export default async function UsuariosPage({
   const estado = first(sp.estado) === 'inactivos' ? 'inactivos' : 'activos'
 
   const supabase = await createClient()
-  const [user, rows, roles] = await Promise.all([
+  const [user, rows] = await Promise.all([
     getCurrentUser(),
     listUsuarios(supabase, estado === 'activos'),
-    listRoles(supabase),
   ])
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Usuarios"
-        description="Gestiona los usuarios del sistema Lago Amadeo."
+        description="Gestiona los usuarios del fraccionamiento."
         breadcrumbs={[{ label: 'Usuarios' }]}
-        actions={<AddUserDialog roles={roles} />}
+        actions={<AddUserDialog />}
       />
-      <UsuariosView rows={rows} roles={roles} currentUserId={user?.id ?? ''} estado={estado} />
+      <UsuariosView rows={rows} currentUserId={user?.id ?? ''} estado={estado} />
     </div>
   )
 }

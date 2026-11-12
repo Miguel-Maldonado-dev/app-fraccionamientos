@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -34,67 +54,91 @@ export type Database = {
       }
       concepto_pago_acceso: {
         Row: {
-          acceso_tarjeta: boolean
-          acceso_telefono: boolean
           concepto_pago_id: number
           created_at: string
+          fraccionamiento_id: number
           id: number
+          medios: Database["public"]["Enums"]["medio_acceso"][]
+          perfil_corriente_id: string | null
+          perfil_corriente_nombre: string | null
+          perfil_moroso_id: string | null
+          perfil_moroso_nombre: string | null
         }
         Insert: {
-          acceso_tarjeta?: boolean
-          acceso_telefono?: boolean
           concepto_pago_id: number
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
+          medios?: Database["public"]["Enums"]["medio_acceso"][]
+          perfil_corriente_id?: string | null
+          perfil_corriente_nombre?: string | null
+          perfil_moroso_id?: string | null
+          perfil_moroso_nombre?: string | null
         }
         Update: {
-          acceso_tarjeta?: boolean
-          acceso_telefono?: boolean
           concepto_pago_id?: number
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
+          medios?: Database["public"]["Enums"]["medio_acceso"][]
+          perfil_corriente_id?: string | null
+          perfil_corriente_nombre?: string | null
+          perfil_moroso_id?: string | null
+          perfil_moroso_nombre?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "concepto_pago_permisos_concepto_pago_id_fkey"
-            columns: ["concepto_pago_id"]
+            foreignKeyName: "concepto_pago_acceso_concepto_pago_id_fkey"
+            columns: ["concepto_pago_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
-            foreignKeyName: "concepto_pago_permisos_concepto_pago_id_fkey"
-            columns: ["concepto_pago_id"]
+            foreignKeyName: "concepto_pago_acceso_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
             isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
           },
         ]
       }
       conceptos_descuento: {
         Row: {
           created_at: string
+          fraccionamiento_id: number
           id: number
           monto_descuento: number
           nombre: string
         }
         Insert: {
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
           monto_descuento: number
           nombre: string
         }
         Update: {
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
           monto_descuento?: number
           nombre?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conceptos_descuento_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conceptos_pago: {
         Row: {
           created_at: string
+          fraccionamiento_id: number
           id: number
           importe: number
           nombre: string
@@ -102,6 +146,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
           importe: number
           nombre: string
@@ -109,12 +154,20 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
           importe?: number
           nombre?: string
           tipo_pago_id?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "conceptos_pago_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "conceptos_pago_tipo_pago_id_fkey"
             columns: ["tipo_pago_id"]
@@ -127,23 +180,79 @@ export type Database = {
       conceptos_recargo: {
         Row: {
           created_at: string
+          fraccionamiento_id: number
           id: number
           monto_recargo: number
           nombre: string
         }
         Insert: {
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
           monto_recargo: number
           nombre: string
         }
         Update: {
           created_at?: string
+          fraccionamiento_id?: number
           id?: number
           monto_recargo?: number
           nombre?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conceptos_recargo_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      controles_acceso: {
+        Row: {
+          botones: Json
+          control_id: string | null
+          created_at: string
+          descripcion: string | null
+          domicilio_id: number
+          fraccionamiento_id: number
+          id: number
+        }
+        Insert: {
+          botones: Json
+          control_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          domicilio_id: number
+          fraccionamiento_id?: number
+          id?: number
+        }
+        Update: {
+          botones?: Json
+          control_id?: string | null
+          created_at?: string
+          descripcion?: string | null
+          domicilio_id?: number
+          fraccionamiento_id?: number
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "controles_acceso_domicilio_id_fkey"
+            columns: ["domicilio_id", "fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "controles_acceso_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cuotas: {
         Row: {
@@ -153,6 +262,7 @@ export type Database = {
           domicilio_id: number
           estatus_id: number
           fecha_vencimiento: string
+          fraccionamiento_id: number
           id: number
           importe: number
           mes: number
@@ -164,6 +274,7 @@ export type Database = {
           domicilio_id: number
           estatus_id: number
           fecha_vencimiento: string
+          fraccionamiento_id?: number
           id?: number
           importe: number
           mes: number
@@ -175,6 +286,7 @@ export type Database = {
           domicilio_id?: number
           estatus_id?: number
           fecha_vencimiento?: string
+          fraccionamiento_id?: number
           id?: number
           importe?: number
           mes?: number
@@ -182,93 +294,30 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
+            columns: ["concepto_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
             foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
+            columns: ["domicilio_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
             foreignKeyName: "cuotas_estatus_id_fkey"
             columns: ["estatus_id"]
             isOneToOne: false
             referencedRelation: "estatus"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cuotas_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
           },
         ]
@@ -278,69 +327,44 @@ export type Database = {
           concepto_descuento_id: number
           created_at: string
           cuota_id: number
+          fraccionamiento_id: number
           id: number
         }
         Insert: {
           concepto_descuento_id: number
           created_at?: string
           cuota_id: number
+          fraccionamiento_id?: number
           id?: number
         }
         Update: {
           concepto_descuento_id?: number
           created_at?: string
           cuota_id?: number
+          fraccionamiento_id?: number
           id?: number
         }
         Relationships: [
           {
             foreignKeyName: "descuento_cuota_concepto_descuento_id_fkey"
-            columns: ["concepto_descuento_id"]
+            columns: ["concepto_descuento_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "conceptos_descuento"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
             foreignKeyName: "descuento_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_tarjeta_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "descuento_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_telefono_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "descuento_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
+            columns: ["cuota_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "cuotas"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "descuento_cuota_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "descuento_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "cuotas_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "descuento_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["ultima_cuota_id"]
-          },
-          {
-            foreignKeyName: "descuento_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["ultima_cuota_id"]
           },
         ]
       }
@@ -349,138 +373,96 @@ export type Database = {
           concepto_id: number
           created_at: string
           domicilio_id: number
+          fraccionamiento_id: number
           id: number
         }
         Insert: {
           concepto_id: number
           created_at?: string
           domicilio_id: number
+          fraccionamiento_id?: number
           id?: number
         }
         Update: {
           concepto_id?: number
           created_at?: string
           domicilio_id?: number
+          fraccionamiento_id?: number
           id?: number
         }
         Relationships: [
           {
             foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["concepto_id"]
+            columns: ["concepto_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["concepto_id"]
+            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
+            columns: ["domicilio_id", "fraccionamiento_id"]
             isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
             referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "domicilio_concepto_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
           },
         ]
       }
       domicilios: {
         Row: {
+          acceso_forzado: string | null
+          acceso_forzado_en: string | null
+          acceso_forzado_por: string | null
           created_at: string
           created_by: string
           direccion: string
           fecha_alta: string
+          fraccionamiento_id: number
           id: number
           observaciones: string | null
+          perfil_asignado_id: string | null
+          titular_id: string | null
         }
         Insert: {
+          acceso_forzado?: string | null
+          acceso_forzado_en?: string | null
+          acceso_forzado_por?: string | null
           created_at?: string
           created_by: string
           direccion: string
           fecha_alta: string
+          fraccionamiento_id?: number
           id?: number
           observaciones?: string | null
+          perfil_asignado_id?: string | null
+          titular_id?: string | null
         }
         Update: {
+          acceso_forzado?: string | null
+          acceso_forzado_en?: string | null
+          acceso_forzado_por?: string | null
           created_at?: string
           created_by?: string
           direccion?: string
           fecha_alta?: string
+          fraccionamiento_id?: number
           id?: number
           observaciones?: string | null
+          perfil_asignado_id?: string | null
+          titular_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "domicilios_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
           {
@@ -488,6 +470,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domicilios_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
           },
         ]
@@ -507,6 +496,94 @@ export type Database = {
           created_at?: string
           id?: number
           name?: string
+        }
+        Relationships: []
+      }
+      fraccionamiento_botones: {
+        Row: {
+          boton: number
+          fraccionamiento_id: number
+          panel_codigo: string
+          panel_id: string
+          salida: number
+          salida_alias: string | null
+        }
+        Insert: {
+          boton: number
+          fraccionamiento_id: number
+          panel_codigo: string
+          panel_id: string
+          salida: number
+          salida_alias?: string | null
+        }
+        Update: {
+          boton?: number
+          fraccionamiento_id?: number
+          panel_codigo?: string
+          panel_id?: string
+          salida?: number
+          salida_alias?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraccionamiento_botones_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fraccionamiento_medios: {
+        Row: {
+          fraccionamiento_id: number
+          medio: Database["public"]["Enums"]["medio_acceso"]
+        }
+        Insert: {
+          fraccionamiento_id: number
+          medio: Database["public"]["Enums"]["medio_acceso"]
+        }
+        Update: {
+          fraccionamiento_id?: number
+          medio?: Database["public"]["Enums"]["medio_acceso"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fraccionamiento_medios_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fraccionamientos: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: number
+          instalacion_id: string | null
+          instalacion_nombre: string | null
+          nombre: string
+          slug: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: number
+          instalacion_id?: string | null
+          instalacion_nombre?: string | null
+          nombre: string
+          slug: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: number
+          instalacion_id?: string | null
+          instalacion_nombre?: string | null
+          nombre?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -551,6 +628,7 @@ export type Database = {
           created_at: string
           descripcion: string
           fecha_movimiento: string
+          fraccionamiento_id: number
           id: number
           importe: number
           metodo_pago_id: number
@@ -562,6 +640,7 @@ export type Database = {
           created_at?: string
           descripcion: string
           fecha_movimiento: string
+          fraccionamiento_id?: number
           id?: number
           importe: number
           metodo_pago_id: number
@@ -573,6 +652,7 @@ export type Database = {
           created_at?: string
           descripcion?: string
           fecha_movimiento?: string
+          fraccionamiento_id?: number
           id?: number
           importe?: number
           metodo_pago_id?: number
@@ -581,6 +661,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "movimientos_financieros_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "movimientos_financieros_metodo_pago_id_fkey"
             columns: ["metodo_pago_id"]
@@ -599,7 +686,7 @@ export type Database = {
             foreignKeyName: "movimientos_financieros_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
           {
@@ -618,10 +705,11 @@ export type Database = {
           cuota_id: number | null
           domicilio_id: number
           fecha_pago: string
-          file_data: string | null
+          fraccionamiento_id: number
           id: number
           importe: number
           metodo_pago_id: number
+          recibo: Json | null
           referencia: string
           user_id: string
         }
@@ -631,10 +719,11 @@ export type Database = {
           cuota_id?: number | null
           domicilio_id: number
           fecha_pago: string
-          file_data?: string | null
+          fraccionamiento_id?: number
           id?: number
           importe: number
           metodo_pago_id: number
+          recibo?: Json | null
           referencia?: string
           user_id: string
         }
@@ -644,139 +733,42 @@ export type Database = {
           cuota_id?: number | null
           domicilio_id?: number
           fecha_pago?: string
-          file_data?: string | null
+          fraccionamiento_id?: number
           id?: number
           importe?: number
           metodo_pago_id?: number
+          recibo?: Json | null
           referencia?: string
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "pagos_concepto_id_fkey"
-            columns: ["concepto_id"]
+            columns: ["concepto_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
             foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_tarjeta_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_telefono_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
+            columns: ["cuota_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "cuotas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "cuotas_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["ultima_cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["ultima_cuota_id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
             foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
+            columns: ["domicilio_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "pagos_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
           },
           {
             foreignKeyName: "pagos_metodo_pago_id_fkey"
@@ -789,7 +781,7 @@ export type Database = {
             foreignKeyName: "pagos_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
           {
@@ -801,74 +793,174 @@ export type Database = {
           },
         ]
       }
+      perfiles: {
+        Row: {
+          activo: boolean
+          created_at: string
+          email: string
+          fraccionamiento_id: number | null
+          id: string
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          email: string
+          fraccionamiento_id?: number | null
+          id: string
+          nombre: string
+          rol: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          email?: string
+          fraccionamiento_id?: number | null
+          id?: string
+          nombre?: string
+          rol?: Database["public"]["Enums"]["rol_usuario"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfiles_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pines_acceso: {
+        Row: {
+          actualizado_at: string
+          domicilio_id: number
+          fraccionamiento_id: number
+          pin: string
+        }
+        Insert: {
+          actualizado_at?: string
+          domicilio_id: number
+          fraccionamiento_id?: number
+          pin: string
+        }
+        Update: {
+          actualizado_at?: string
+          domicilio_id?: number
+          fraccionamiento_id?: number
+          pin?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pines_acceso_domicilio_id_fkey"
+            columns: ["domicilio_id", "fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "pines_acceso_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recargo_cuota: {
         Row: {
           concepto_recargo_id: number
           created_at: string
           cuota_id: number
+          fraccionamiento_id: number
           id: number
         }
         Insert: {
           concepto_recargo_id: number
           created_at?: string
           cuota_id: number
+          fraccionamiento_id?: number
           id?: number
         }
         Update: {
           concepto_recargo_id?: number
           created_at?: string
           cuota_id?: number
+          fraccionamiento_id?: number
           id?: number
         }
         Relationships: [
           {
             foreignKeyName: "recargo_cuota_concepto_recargo_id_fkey"
-            columns: ["concepto_recargo_id"]
+            columns: ["concepto_recargo_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "conceptos_recargo"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
           {
             foreignKeyName: "recargo_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_tarjeta_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "recargo_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_telefono_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "recargo_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
+            columns: ["cuota_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "cuotas"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "recargo_cuota_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      reglas_cobro: {
+        Row: {
+          concepto_recargo_id: number | null
+          cuotas_para_moroso: number
+          dia_generacion: number | null
+          dia_vencimiento: number | null
+          dias_gracia: number
+          fraccionamiento_id: number
+          recargo_desde: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          concepto_recargo_id?: number | null
+          cuotas_para_moroso?: number
+          dia_generacion?: number | null
+          dia_vencimiento?: number | null
+          dias_gracia?: number
+          fraccionamiento_id: number
+          recargo_desde?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          concepto_recargo_id?: number | null
+          cuotas_para_moroso?: number
+          dia_generacion?: number | null
+          dia_vencimiento?: number | null
+          dias_gracia?: number
+          fraccionamiento_id?: number
+          recargo_desde?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "recargo_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
+            foreignKeyName: "reglas_cobro_concepto_recargo_id_fkey"
+            columns: ["concepto_recargo_id", "fraccionamiento_id"]
             isOneToOne: false
-            referencedRelation: "cuotas_info"
+            referencedRelation: "conceptos_recargo"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "reglas_cobro_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: true
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recargo_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["ultima_cuota_id"]
-          },
-          {
-            foreignKeyName: "recargo_cuota_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["ultima_cuota_id"]
           },
         ]
       }
@@ -877,6 +969,7 @@ export type Database = {
           created_at: string
           domicilio_id: number
           es_principal: boolean | null
+          fraccionamiento_id: number
           id: number
           nombre: string
           telefono: string | null
@@ -885,6 +978,7 @@ export type Database = {
           created_at?: string
           domicilio_id: number
           es_principal?: boolean | null
+          fraccionamiento_id?: number
           id?: number
           nombre: string
           telefono?: string | null
@@ -893,6 +987,7 @@ export type Database = {
           created_at?: string
           domicilio_id?: number
           es_principal?: boolean | null
+          fraccionamiento_id?: number
           id?: number
           nombre?: string
           telefono?: string | null
@@ -900,183 +995,144 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
+            columns: ["domicilio_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "residentes_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
           },
         ]
       }
-      roles: {
+      sincronizacion_leases: {
         Row: {
-          created_at: string
-          id: number
-          role_name: string
+          fraccionamiento_id: number
+          hasta: string
+          token: string
         }
         Insert: {
-          created_at?: string
-          id?: number
-          role_name: string
+          fraccionamiento_id: number
+          hasta: string
+          token: string
         }
         Update: {
-          created_at?: string
-          id?: number
-          role_name?: string
+          fraccionamiento_id?: number
+          hasta?: string
+          token?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sincronizacion_leases_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: true
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sincronizaciones_acceso: {
+        Row: {
+          carga: Json
+          created_at: string
+          domicilio_id: number | null
+          entidad: string
+          entidad_id: number | null
+          estado: string
+          fraccionamiento_id: number
+          id: string
+          intentos: number
+          operacion: string
+          proximo_intento_at: string
+          ultimo_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          carga?: Json
+          created_at?: string
+          domicilio_id?: number | null
+          entidad: string
+          entidad_id?: number | null
+          estado?: string
+          fraccionamiento_id?: number
+          id?: string
+          intentos?: number
+          operacion: string
+          proximo_intento_at?: string
+          ultimo_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carga?: Json
+          created_at?: string
+          domicilio_id?: number | null
+          entidad?: string
+          entidad_id?: number | null
+          estado?: string
+          fraccionamiento_id?: number
+          id?: string
+          intentos?: number
+          operacion?: string
+          proximo_intento_at?: string
+          ultimo_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sincronizaciones_acceso_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tarjetas_acceso: {
         Row: {
           created_at: string
+          descripcion: string | null
           domicilio_id: number
+          fraccionamiento_id: number
           id: number
           numero: string
+          tarjeta_id: string | null
         }
         Insert: {
           created_at?: string
+          descripcion?: string | null
           domicilio_id: number
+          fraccionamiento_id?: number
           id?: number
           numero: string
+          tarjeta_id?: string | null
         }
         Update: {
           created_at?: string
+          descripcion?: string | null
           domicilio_id?: number
+          fraccionamiento_id?: number
           id?: number
           numero?: string
+          tarjeta_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
+            columns: ["domicilio_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "tarjetas_acceso_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tarjetas_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
           },
         ]
       }
@@ -1084,91 +1140,38 @@ export type Database = {
         Row: {
           created_at: string
           domicilio_id: number
+          fraccionamiento_id: number
           id: number
           telefono: string
         }
         Insert: {
           created_at?: string
           domicilio_id: number
+          fraccionamiento_id?: number
           id?: number
           telefono: string
         }
         Update: {
           created_at?: string
           domicilio_id?: number
+          fraccionamiento_id?: number
           id?: number
           telefono?: string
         }
         Relationships: [
           {
             foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
+            columns: ["domicilio_id", "fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "domicilios"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "telefonos_acceso_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "telefonos_acceso_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
           },
         ]
       }
@@ -1208,274 +1211,8 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: number
-          role_id: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          role_id: number
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          role_id?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      users: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          is_active: boolean
-          user_name: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id: string
-          is_active: boolean
-          user_name: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          is_active?: boolean
-          user_name?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
-      accesos_tarjeta_info: {
-        Row: {
-          anio: number | null
-          concepto_id: number | null
-          cuota_id: number | null
-          direccion: string | null
-          domicilio_id: number | null
-          estatus_id: number | null
-          mes: number | null
-          tarjeta_1: string | null
-          tarjeta_2: string | null
-          tarjeta_3: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_estatus_id_fkey"
-            columns: ["estatus_id"]
-            isOneToOne: false
-            referencedRelation: "estatus"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      accesos_telefono_info: {
-        Row: {
-          anio: number | null
-          concepto_id: number | null
-          cuota_id: number | null
-          direccion: string | null
-          domicilio_id: number | null
-          estatus_id: number | null
-          mes: number | null
-          telefono_1: string | null
-          telefono_2: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_estatus_id_fkey"
-            columns: ["estatus_id"]
-            isOneToOne: false
-            referencedRelation: "estatus"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cuotas_info: {
         Row: {
           anio: number | null
@@ -1497,92 +1234,7 @@ export type Database = {
           periodo: string | null
           residente_principal: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cuotas_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-        ]
+        Relationships: []
       }
       domicilio_concepto_info: {
         Row: {
@@ -1593,228 +1245,21 @@ export type Database = {
           id: number | null
           importe: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: true
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-        ]
-      }
-      domicilios_acceso_peatonal: {
-        Row: {
-          direccion: string | null
-          estado: string | null
-          fecha_alta: string | null
-          fecha_vencimiento: string | null
-          id: number | null
-          id_concepto: number | null
-          importe: number | null
-          observaciones: string | null
-          residente_principal: string | null
-          tipo_acceso: string | null
-          tipo_cuota: string | null
-          ultima_cuota_anio: number | null
-          ultima_cuota_id: number | null
-          ultima_cuota_mes: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["id_concepto"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["id_concepto"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-        ]
+        Relationships: []
       }
       domicilios_info: {
         Row: {
-          acceso_tarjeta: boolean | null
-          acceso_telefono: boolean | null
           direccion: string | null
           estatus: string | null
           fecha_alta: string | null
           id: number | null
           id_concepto: number | null
+          medios: Database["public"]["Enums"]["medio_acceso"][] | null
           observaciones: string | null
           residente_principal: string | null
           tipo_cuota: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["id_concepto"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["id_concepto"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-        ]
-      }
-      domicilios_morosos: {
-        Row: {
-          direccion: string | null
-          estado: string | null
-          fecha_alta: string | null
-          fecha_vencimiento: string | null
-          id: number | null
-          id_concepto: number | null
-          importe: number | null
-          observaciones: string | null
-          residente_principal: string | null
-          tipo_acceso: string | null
-          tipo_cuota: string | null
-          ultima_cuota_anio: number | null
-          ultima_cuota_id: number | null
-          ultima_cuota_mes: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["id_concepto"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilio_concepto_concepto_id_fkey"
-            columns: ["id_concepto"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-        ]
-      }
-      domicilios_tarjetas_acceso: {
-        Row: {
-          anio: number | null
-          direccion: string | null
-          domicilio_id: number | null
-          estatus_id: number | null
-          mes: number | null
-          tarjeta: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cuotas_estatus_id_fkey"
-            columns: ["estatus_id"]
-            isOneToOne: false
-            referencedRelation: "estatus"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      domicilios_telefonos_acceso: {
-        Row: {
-          anio: number | null
-          direccion: string | null
-          domicilio_id: number | null
-          estatus_id: number | null
-          mes: number | null
-          telefono: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cuotas_estatus_id_fkey"
-            columns: ["estatus_id"]
-            isOneToOne: false
-            referencedRelation: "estatus"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       movimientos_info: {
         Row: {
@@ -1849,7 +1294,7 @@ export type Database = {
             foreignKeyName: "movimientos_financieros_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
           {
@@ -1871,13 +1316,13 @@ export type Database = {
           direccion: string | null
           domicilio_id: number | null
           fecha_pago: string | null
-          file_data: string | null
           id: number | null
           importe: number | null
           mes: number | null
           metodo_pago: string | null
           metodo_pago_id: number | null
           referencia: string | null
+          tiene_recibo: boolean | null
           tipo_pago_id: number | null
           user_id: string | null
         }
@@ -1890,132 +1335,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "pagos_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_tarjeta_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "accesos_telefono_info"
-            referencedColumns: ["cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "cuotas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "cuotas_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["ultima_cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_cuota_id_fkey"
-            columns: ["cuota_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["ultima_cuota_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
             foreignKeyName: "pagos_metodo_pago_id_fkey"
             columns: ["metodo_pago_id"]
             isOneToOne: false
@@ -2026,113 +1345,11 @@ export type Database = {
             foreignKeyName: "pagos_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "pagos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users_info"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      recibos_info: {
-        Row: {
-          concepto_id: number | null
-          concepto_nombre: string | null
-          created_at: string | null
-          direccion: string | null
-          domicilio_id: number | null
-          fecha_pago: string | null
-          id: number | null
-          importe: number | null
-          metodo_pago_id: number | null
-          referencia: string | null
-          residente_principal: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pagos_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "conceptos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_concepto_id_fkey"
-            columns: ["concepto_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["concepto_id"]
-          },
-          {
-            foreignKeyName: "pagos_metodo_pago_id_fkey"
-            columns: ["metodo_pago_id"]
-            isOneToOne: false
-            referencedRelation: "metodos_pago"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reporte_egresos_mensual: {
-        Row: {
-          anio: number | null
-          descripcion: string | null
-          fecha_movimiento: string | null
-          fecha_registro: string | null
-          importe: number | null
-          mes: number | null
-          metodo_pago_id: number | null
-          movimiento_id: number | null
-          periodo: string | null
-          referencia: string | null
-          user_id: string | null
-        }
-        Insert: {
-          anio?: never
-          descripcion?: string | null
-          fecha_movimiento?: string | null
-          fecha_registro?: string | null
-          importe?: number | null
-          mes?: never
-          metodo_pago_id?: number | null
-          movimiento_id?: number | null
-          periodo?: never
-          referencia?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          anio?: never
-          descripcion?: string | null
-          fecha_movimiento?: string | null
-          fecha_registro?: string | null
-          importe?: number | null
-          mes?: never
-          metodo_pago_id?: number | null
-          movimiento_id?: number | null
-          periodo?: never
-          referencia?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "movimientos_financieros_metodo_pago_id_fkey"
-            columns: ["metodo_pago_id"]
-            isOneToOne: false
-            referencedRelation: "metodos_pago"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "movimientos_financieros_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "movimientos_financieros_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users_info"
@@ -2144,88 +1361,18 @@ export type Database = {
         Row: {
           domicilio_id: number | null
           fecha_pago: string | null
-          file_data: string | null
           id: number | null
           importe: number | null
           metodo_pago_id: number | null
           metodo_pago_nombre: string | null
           nombre_usuario: string | null
           referencia: string | null
+          tiene_recibo: boolean | null
           user_id: string | null
           usuario: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
             foreignKeyName: "pagos_metodo_pago_id_fkey"
             columns: ["metodo_pago_id"]
             isOneToOne: false
@@ -2236,62 +1383,7 @@ export type Database = {
             foreignKeyName: "pagos_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users_info"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reporte_pagos_mensual: {
-        Row: {
-          anio: number | null
-          concepto: string | null
-          concepto_id: number | null
-          direccion: string | null
-          domicilio_id: number | null
-          fecha_movimiento: string | null
-          fecha_pago: string | null
-          importe: number | null
-          mes: number | null
-          metodo_pago_id: number | null
-          movimiento_descripcion: string | null
-          movimiento_id: number | null
-          pago_id: number | null
-          periodo: string | null
-          referencia: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pagos_metodo_pago_id_fkey"
-            columns: ["metodo_pago_id"]
-            isOneToOne: false
-            referencedRelation: "metodos_pago"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      reporte_pagos_por_usuario: {
-        Row: {
-          email: string | null
-          nombre_usuario: string | null
-          primer_pago: string | null
-          total_cobrado: number | null
-          total_pagos: number | null
-          ultimo_pago: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pagos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "perfiles"
             referencedColumns: ["id"]
           },
           {
@@ -2313,78 +1405,7 @@ export type Database = {
           nombre: string | null
           telefono: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_acceso_peatonal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_info"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_morosos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_tarjetas_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "domicilios_telefonos_acceso"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "recibos_info"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "reporte_pagos_mensual"
-            referencedColumns: ["domicilio_id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_residente_principal"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "residentes_domicilio_id_fkey"
-            columns: ["domicilio_id"]
-            isOneToOne: false
-            referencedRelation: "vw_domicilios_tarjetas"
-            referencedColumns: ["domicilio_id"]
-          },
-        ]
+        Relationships: []
       }
       resumen_financiero_completo: {
         Row: {
@@ -2402,71 +1423,94 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string | null
+          fraccionamiento_id: number | null
           id: string | null
           is_active: boolean | null
-          role_id: number | null
-          role_name: string | null
+          rol: Database["public"]["Enums"]["rol_usuario"] | null
           user_name: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_role_id_fkey"
-            columns: ["role_id"]
-            isOneToOne: false
-            referencedRelation: "roles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_domicilios_residente_principal: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          direccion: string | null
-          fecha_alta: string | null
-          id: number | null
-          observaciones: string | null
-          residente: string | null
-          telefono: string | null
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          fraccionamiento_id?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          rol?: Database["public"]["Enums"]["rol_usuario"] | null
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          fraccionamiento_id?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          rol?: Database["public"]["Enums"]["rol_usuario"] | null
+          user_name?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "domicilios_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "perfiles_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domicilios_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users_info"
+            referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
           },
         ]
-      }
-      vw_domicilios_tarjetas: {
-        Row: {
-          direccion: string | null
-          domicilio_id: number | null
-          tarjeta_1: string | null
-          tarjeta_2: string | null
-          tarjeta_3: string | null
-          tarjeta_4: string | null
-        }
-        Relationships: []
       }
     }
     Functions: {
+      adquirir_sincronizacion: {
+        Args: {
+          p_fraccionamiento_id: number
+          p_segundos?: number
+          p_token: string
+        }
+        Returns: boolean
+      }
+      cancelar_sincronizaciones: {
+        Args: { p_fraccionamiento_id: number }
+        Returns: number
+      }
+      estado_acceso_domicilio: {
+        Args: { p_domicilio_id: number }
+        Returns: {
+          acceso_forzado: string
+          es_moroso: boolean
+          forzado_en: string
+          forzado_por_nombre: string
+        }[]
+      }
+      forzar_acceso: {
+        Args: { p_domicilio_id: number; p_valor: string }
+        Returns: undefined
+      }
+      generar_cuota_domicilio: {
+        Args: { p_anio: number; p_domicilio_id: number; p_mes: number }
+        Returns: undefined
+      }
       generar_cuotas: {
         Args: { p_anio: number; p_mes: number }
         Returns: undefined
       }
-      marcar_cuotas_vencidas: { Args: never; Returns: undefined }
+      liberar_sincronizacion: {
+        Args: { p_fraccionamiento_id: number; p_token: string }
+        Returns: undefined
+      }
+      perfil_deseado: { Args: { p_domicilio_id: number }; Returns: string }
+      procesar_reglas_cobro: { Args: never; Returns: undefined }
+      recalcular_permisos_acceso: {
+        Args: { p_fraccionamiento_id?: number }
+        Returns: number
+      }
     }
     Enums: {
-      [_ in never]: never
+      medio_acceso: "tarjeta" | "control" | "pin" | "telefono" | "qr"
+      rol_usuario:
+        | "super_admin"
+        | "administrador"
+        | "tesorero"
+        | "comite"
+        | "vigilancia"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2482,12 +1526,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2511,11 +1555,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2536,11 +1580,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2561,11 +1605,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2578,11 +1622,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2592,7 +1636,20 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  public: {
+  graphql_public: {
     Enums: {},
   },
+  public: {
+    Enums: {
+      medio_acceso: ["tarjeta", "control", "pin", "telefono", "qr"],
+      rol_usuario: [
+        "super_admin",
+        "administrador",
+        "tesorero",
+        "comite",
+        "vigilancia",
+      ],
+    },
+  },
 } as const
+

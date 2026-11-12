@@ -14,8 +14,8 @@ export function Money({
     <span
       className={cn(
         'font-medium tabular-nums',
-        variant === 'ingreso' && 'text-success',
-        variant === 'egreso' && 'text-danger',
+        variant === 'ingreso' && 'text-success-foreground',
+        variant === 'egreso' && 'text-danger-foreground',
       )}
     >
       {prefix}

@@ -12,7 +12,7 @@ export function MobileNav({ user }: { user: ShellUser }) {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menú">
-          <Menu />
+          <Menu strokeWidth={1.75} />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-[270px] p-0">

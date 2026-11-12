@@ -6,10 +6,10 @@ import type { Tables, Views } from '@/lib/supabase/types'
 export async function getPagoRecibo(
   supabase: SupabaseClient<Database>,
   pagoId: number,
-): Promise<{ referencia: string; file_data: string | null } | null> {
+): Promise<{ referencia: string; recibo: unknown } | null> {
   const { data, error } = await supabase
     .from('pagos')
-    .select('referencia, file_data')
+    .select('referencia, recibo')
     .eq('id', pagoId)
     .maybeSingle()
   if (error) throw new Error(`No se pudo leer el recibo: ${error.message}`)

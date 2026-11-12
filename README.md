@@ -1,6 +1,6 @@
-# Lago Amadeo — Panel de Administración
+# Fraccionamientos — Panel de Administración
 
-Migración de la app FlutterFlow de Lago Amadeo a Next.js 16 (App Router) + Supabase. Usa la misma base de datos productiva: no se modifica el esquema, las políticas RLS, las funciones ni las edge functions. Los roles se verifican en el servidor.
+App multi-tenant (Next.js 16, App Router, y Supabase) para administrar fraccionamientos: domicilios, residentes, cuotas, pagos, movimientos y accesos. Cada fraccionamiento es un tenant aislado por RLS; los roles se verifican en el servidor.
 
 ## Requisitos
 
@@ -10,7 +10,16 @@ Migración de la app FlutterFlow de Lago Amadeo a Next.js 16 (App Router) + Supa
 
 ## Configuración
 
-1. `cp .env.example .env.local` y rellenar `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` con la llave publicable del dashboard de Supabase (nunca la service role).
+1. `cp .env.example .env.local` y rellenar las variables de entorno:
+
+   | Variable | Uso |
+   | --- | --- |
+   | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Llave publicable (navegador y servidor). |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Llave service role. Solo servidor (`src/lib/supabase/admin.ts`, alta de usuarios); nunca con prefijo `NEXT_PUBLIC_`. En local: `SERVICE_ROLE_KEY` de `supabase status -o json`. |
+   | `ACCESS_CORE_API_URL` | Base de la API de access-core (por defecto `https://access-core-cloud.vercel.app/api/v1`). |
+   | `ACCESS_CORE_API_KEY` | Llave `acc_…` de access-core. Solo servidor; nunca con prefijo `NEXT_PUBLIC_`. Se obtiene en el panel de access-core y actúa como admin de todas las instalaciones de su tenant. |
+   | `CRON_SECRET` | Secreto que autoriza al cron a llamar a la ruta de sincronización. Solo servidor. |
 2. `npm install`
 
 ## Comandos
@@ -24,6 +33,76 @@ Migración de la app FlutterFlow de Lago Amadeo a Next.js 16 (App Router) + Supa
 | `npm run build` | Build de producción |
 | `npm start` | Sirve el build de producción |
 
+## Base de datos local
+
+Esquema multi-tenant de Supabase en `supabase/migrations/`. La app (`src/`) ya está adaptada a este esquema.
+
+```bash
+supabase start        # API en el puerto 55321, base en 55322 (puertos 553xx)
+supabase db reset     # aplica migraciones y seed.sql (borra la base local)
+supabase test db      # pruebas pgTAP en supabase/tests/database/
+```
+
+Si `supabase start` falla por salud de contenedores: `supabase start -x logflare,vector,imgproxy`. En entornos no interactivos, añadir `</dev/null` a los comandos.
+
+Usuario local (super admin, sin fraccionamiento): `superadmin@local.test` / `superadmin123`.
+
+### Fraccionamiento de demostración
+
+`seed.sql` solo crea al super admin. Para probar la app en el navegador, carga el fraccionamiento `Fracc Demo` (slug `fracc-demo`) con un administrador, un tesorero y una cuota `Mensual` de 500 con acceso por teléfono y tarjeta. El script es idempotente (se puede correr varias veces sin duplicar):
+
+```bash
+psql postgresql://postgres:postgres@127.0.0.1:55322/postgres -v ON_ERROR_STOP=1 -f supabase/scripts/demo-local.sql
+# si psql no está instalado en tu máquina, dentro del contenedor:
+docker exec -i supabase_db_app-fraccionamientos psql -U postgres -v ON_ERROR_STOP=1 < supabase/scripts/demo-local.sql
+```
+
+El script aborta si la base no es la local de desarrollo (exige el super admin de `seed.sql`).
+
+`supabase db reset` borra la demo: vuelve a correr el script después de cada reset.
+
+| Cuenta | Correo | Contraseña |
+| --- | --- | --- |
+| Super admin (sin fraccionamiento) | `superadmin@local.test` | `superadmin123` |
+| Administrador de Fracc Demo | `admin.demo@local.test` | `admin12345` |
+| Tesorero de Fracc Demo | `tesorero.demo@local.test` | `tesorero12345` |
+
+Para comprobar el inicio de sesión sin la app (la llave `ANON_KEY` sale de `supabase status -o env`):
+
+```bash
+curl -s -X POST "http://127.0.0.1:55321/auth/v1/token?grant_type=password" \
+  -H "apikey: $ANON_KEY" -H "Content-Type: application/json" \
+  -d '{"email":"admin.demo@local.test","password":"admin12345"}'
+```
+
+## Reglas de cobro
+
+Cada fraccionamiento puede configurar sus reglas en Configuración (tabla `reglas_cobro`). Sin fila de reglas, o con los campos vacíos, rige el comportamiento anterior.
+
+| Campo | Significado | Valor por defecto |
+| --- | --- | --- |
+| `dia_generacion` (1-28) | Día del mes en que se generan las cuotas automáticamente. | Vacío: no se generan solas. |
+| `dia_vencimiento` (1-31) | Día del mes en que vence la cuota. | Vacío: vence como antes (fecha de la cuota). |
+| `dias_gracia` (0-60) | Días después del vencimiento en que la cuota se muestra "En gracia" y aún no pasa a Vencido. | 0 |
+| `cuotas_para_moroso` (1-12) | Cuotas vencidas a partir de las cuales el domicilio es moroso. | 1 |
+| `concepto_recargo_id` | Concepto de recargo que se aplica a las cuotas que vencen (no es retroactivo: `recargo_desde` guarda la fecha de activación). | Vacío: sin recargo. |
+
+- El proceso diario `procesar_reglas_cobro` (pg_cron, job `procesar-reglas-cobro`, 06:00 UTC) genera cuotas, marca vencidas, aplica recargos y limpia accesos forzados. Reemplaza a `marcar_cuotas_vencidas`.
+- Acceso manual: solo el administrador puede forzar el acceso de un domicilio (`activo` o `inactivo`) sin importar su morosidad. El ajuste se quita solo cuando coincide con el estado real.
+
+## Recibos
+
+- Al registrar un pago, la app guarda en `pagos.recibo` una foto JSON pequeña del recibo (fraccionamiento, dirección, residente, concepto, fechas e importes). No se guarda ningún PDF en la base.
+- El PDF (ticket de 58 mm con logotipo y QR de la referencia) se genera cada vez que alguien lo abre, en `GET /api/recibos/[pagoId]`, a partir de ese JSON y de `pagos.referencia`. Así, un recibo reimpreso muestra siempre los datos del momento del pago.
+- Un pago sin `recibo` o con un JSON inválido responde 404 "Recibo no disponible".
+- La impresión no cambia: el diálogo del recibo envía el PDF al servidor de impresión local de cada caseta (`http://localhost:8000/print`).
+
+## Sincronización con access-core
+
+Los cambios de domicilios, tarjetas, controles y PIN se encolan en `sincronizaciones_acceso` y un trabajador los envía a access-core (con lease por fraccionamiento y reintentos). Quien administra ve el estado en `/accesos`; el super admin, en la pestaña Accesos de la consola.
+
+El cron del hosting debe llamar cada 5 minutos a `POST /api/sincronizacion/procesar` con la cabecera `Authorization: Bearer <CRON_SECRET>`. Sin el secreto correcto responde 401. Mapeo completo: [docs/integraciones/access-core-mapeo.md](docs/integraciones/access-core-mapeo.md).
+
 ## Estructura
 
 - `src/app`: rutas de la aplicación, con los grupos `(auth)` y `(app)` y los endpoints en `api/`.
@@ -35,6 +114,8 @@ Migración de la app FlutterFlow de Lago Amadeo a Next.js 16 (App Router) + Supa
 ## Sistema de diseño
 
 Spec completa: [`docs/superpowers/specs/2026-10-06-rediseno-visual-design.md`](docs/superpowers/specs/2026-10-06-rediseno-visual-design.md).
+
+La identidad visual es la de WEADMI (paleta, tipografía Sora/Inter y logos); ver [`docs/marca/`](docs/marca/) y la spec [`2026-11-10-identidad-weadmi-design.md`](docs/superpowers/specs/2026-11-10-identidad-weadmi-design.md).
 
 **Tokens** (definidos en `src/app/globals.css`, usados como utilidades Tailwind):
 
@@ -78,25 +159,37 @@ Spec completa: [`docs/superpowers/specs/2026-10-06-rediseno-visual-design.md`](d
 
 **Patrón de página:** breadcrumb, título, acciones, métricas, filtros y tabla.
 
+## Consola del super admin
+
+`/admin` (solo super admin; cualquier otro usuario recibe 404) lista los fraccionamientos con su estado y los conteos de usuarios y domicilios.
+
+- **Crear / editar:** "+ Nuevo fraccionamiento" y el lápiz de cada fila abren un diálogo con nombre, slug (se sugiere a partir del nombre), ID de instalación (opcional) y activo.
+- **Detalle:** el nombre de cada fila enlaza a `/admin/fraccionamientos/<id>`, con pestañas:
+  - **Usuarios:** crear usuarios con cualquier rol del fraccionamiento y activarlos o desactivarlos. Editar nombre o rol lo hace el administrador del propio fraccionamiento.
+  - **Catálogos:** tipos de cuota, extras, descuentos y recargos (una pestaña por catálogo).
+
 ## Roles
 
-- **Administrador**: acceso a todo, incluido Usuarios.
-- **Tesorero**: gestión de cuotas, pagos y movimientos.
-- **Comite** y **Vigilancia**: consulta, más edición de domicilios, residentes y accesos.
+- **Administrador**: edita domicilios, residentes, accesos, catálogos y usuarios.
+- **Tesorero**: gestiona cuotas, pagos y movimientos.
+- **Comité**: solo lectura.
+- **Vigilancia**: lee domicilios, residentes y accesos (y los reportes de acceso).
+- **Super admin**: usa `/admin`.
+
+Matriz de permisos completa en la especificación multi-tenant.
 
 ## Documentación
 
-- [Especificación de diseño](docs/superpowers/specs/2026-10-05-migracion-flutterflow-nextjs-design.md)
-- [Anexo: inventario funcional de FlutterFlow](docs/superpowers/specs/2026-10-05-inventario-funcional-flutterflow.md)
-- [Plan de implementación](docs/superpowers/plans/2026-10-05-migracion-nextjs.md)
+- [Especificación multi-tenant](docs/superpowers/specs/2026-11-09-multitenant-design.md)
+- [Medios de acceso con access-core](docs/superpowers/specs/2026-11-11-medios-acceso-access-core-design.md) y [mapeo WEADMI ↔ access-core](docs/integraciones/access-core-mapeo.md)
+- Planes por fase: [fase 1, esquema](docs/superpowers/plans/2026-11-09-multitenant-fase1-esquema.md), [fase 2, app](docs/superpowers/plans/2026-11-10-multitenant-fase2-app.md), [fase 3, consola](docs/superpowers/plans/2026-11-10-multitenant-fase3-consola.md)
+- Históricos (migración desde FlutterFlow): [diseño](docs/superpowers/specs/2026-10-05-migracion-flutterflow-nextjs-design.md), [inventario funcional](docs/superpowers/specs/2026-10-05-inventario-funcional-flutterflow.md), [plan](docs/superpowers/plans/2026-10-05-migracion-nextjs.md)
 
 ## Limitaciones conocidas
 
 - El pago no es transaccional (varias escrituras); se mitiga con un guard de pago existente.
-- El recibo se guarda en base64 en `pagos.file_data`.
-- Las edge functions de exportación no verifican JWT; la app las protege mediante `/api/exports/*`.
 - El RLS de la base de datos es permisivo; la app verifica los roles en el servidor.
-- La impresión de recibos requiere el agente local en `http://localhost:8000/print`.
+- La impresión de recibos requiere el servidor de impresión local de cada caseta en `http://localhost:8000/print`.
 
 ## Lista de comprobación manual
 

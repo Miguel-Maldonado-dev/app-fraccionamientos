@@ -24,7 +24,7 @@ export default async function ResidentesPage({
     <div className="space-y-6">
       <PageHeader
         title="Residentes"
-        description="Consulta los residentes del fraccionamiento Lago Amadeo."
+        description="Consulta los residentes del fraccionamiento."
         breadcrumbs={[{ label: 'Residentes' }]}
       />
       <ResidentesView rows={rows} domicilios={options} domicilioId={domicilioId} />

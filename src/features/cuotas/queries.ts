@@ -95,46 +95,22 @@ export async function getRecargoCuota(
 
 export async function listConceptosDescuento(
   supabase: SupabaseClient<Database>,
+  fraccionamientoId?: number,
 ): Promise<Tables<'conceptos_descuento'>[]> {
-  const { data, error } = await supabase.from('conceptos_descuento').select('*').order('id', { ascending: true })
+  let q = supabase.from('conceptos_descuento').select('*')
+  if (fraccionamientoId !== undefined) q = q.eq('fraccionamiento_id', fraccionamientoId)
+  const { data, error } = await q.order('id', { ascending: true })
   if (error) throw new Error(`No se pudieron leer los descuentos: ${error.message}`)
   return data ?? []
 }
 
 export async function listConceptosRecargo(
   supabase: SupabaseClient<Database>,
+  fraccionamientoId?: number,
 ): Promise<Tables<'conceptos_recargo'>[]> {
-  const { data, error } = await supabase.from('conceptos_recargo').select('*').order('id', { ascending: true })
+  let q = supabase.from('conceptos_recargo').select('*')
+  if (fraccionamientoId !== undefined) q = q.eq('fraccionamiento_id', fraccionamientoId)
+  const { data, error } = await q.order('id', { ascending: true })
   if (error) throw new Error(`No se pudieron leer los recargos: ${error.message}`)
   return data ?? []
-}
-
-export async function existeCuota(
-  supabase: SupabaseClient<Database>,
-  domicilioId: number,
-  anio: number,
-  mes: number,
-): Promise<boolean> {
-  const { count, error } = await supabase
-    .from('cuotas')
-    .select('id', { count: 'exact', head: true })
-    .eq('domicilio_id', domicilioId)
-    .eq('anio', anio)
-    .eq('mes', mes)
-  if (error) throw new Error(`No se pudo verificar la cuota: ${error.message}`)
-  return (count ?? 0) > 0
-}
-
-export async function getDomicilioConceptoInfo(
-  supabase: SupabaseClient<Database>,
-  domicilioId: number,
-): Promise<Views<'domicilio_concepto_info'> | null> {
-  const { data, error } = await supabase
-    .from('domicilio_concepto_info')
-    .select('*')
-    .eq('domicilio_id', domicilioId)
-    .limit(1)
-    .maybeSingle()
-  if (error) throw new Error(`No se pudo leer el tipo de cuota: ${error.message}`)
-  return data
 }

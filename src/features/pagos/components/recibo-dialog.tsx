@@ -108,9 +108,9 @@ export function ReciboDialog({ pagoId, trigger }: { pagoId: number; trigger: Rea
     >
       {estado.tipo === 'cargando' && <p className="text-sm text-muted-foreground">Cargando recibo...</p>}
       {estado.tipo === 'sin-recibo' && <p className="text-sm">{MSG_SIN_RECIBO_DISPONIBLE}</p>}
-      {estado.tipo === 'error' && <p className="text-sm text-danger">{MSG_ERROR_CARGA_RECIBO}</p>}
+      {estado.tipo === 'error' && <p className="text-sm text-danger-foreground">{MSG_ERROR_CARGA_RECIBO}</p>}
       {estado.tipo === 'listo' && (
-        <div className="rounded-md bg-[#444444] p-2">
+        <div className="rounded-md bg-muted p-2">
           <iframe title="Recibo" src={estado.objectUrl} className="h-[55vh] max-h-[560px] w-full rounded-sm" />
         </div>
       )}

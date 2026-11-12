@@ -5,7 +5,7 @@ import { listDomiciliosOptions } from '@/features/domicilios/queries'
 import { PagosView } from '@/features/pagos/components/pagos-view'
 import { RegistrarPagoExtraDialog } from '@/features/pagos/components/registrar-pago-extra-dialog'
 import { listConceptosExtra, listMetodosPago, listPagos } from '@/features/pagos/queries'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { hasRole } from '@/lib/auth/require-role'
 import { ROLES_GESTION } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
@@ -24,7 +24,7 @@ export default async function PagosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Pagos"
-        description="Consulta y administra los pagos del fraccionamiento Lago Amadeo."
+        description="Consulta y administra los pagos del fraccionamiento."
         breadcrumbs={[{ label: 'Pagos' }]}
         actions={
           hasRole(user, ROLES_GESTION) ? (

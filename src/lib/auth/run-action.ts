@@ -1,7 +1,7 @@
 import { unstable_rethrow } from 'next/navigation'
 import { fail, type ActionResult } from '@/lib/action-result'
-import type { CurrentUser } from '@/lib/auth/current-user'
-import { AuthorizationError, requireRole, requireUser } from '@/lib/auth/require-role'
+import type { CurrentUser } from '@/lib/auth/tenant-context'
+import { AuthorizationError, requireRole, requireSuperAdmin, requireUser } from '@/lib/auth/require-role'
 import type { RoleName } from '@/lib/constants'
 
 export const MSG_SESION = 'Tu sesión expiró. Inicia sesión de nuevo.'
@@ -20,12 +20,28 @@ export async function runAction<T>(
     const user = roles === null ? await requireUser() : await requireRole(...roles)
     return await fn(user)
   } catch (error) {
-    // redirect()/notFound() de Next.js lanzan para controlar el flujo; deben propagarse.
-    unstable_rethrow(error)
-    if (error instanceof AuthorizationError) {
-      return fail(error.code === 'NO_SESSION' ? MSG_SESION : MSG_NO_PERMISO)
-    }
-    console.error(error)
-    return fail(MSG_ERROR)
+    return manejarError(error)
   }
+}
+
+/** Como `runAction`, pero para la consola: solo el super admin activo ejecuta `fn`. */
+export async function runSuperAdminAction<T>(
+  fn: (admin: { id: string; email: string }) => Promise<ActionResult<T>>,
+): Promise<ActionResult<T>> {
+  try {
+    const admin = await requireSuperAdmin()
+    return await fn(admin)
+  } catch (error) {
+    return manejarError(error)
+  }
+}
+
+function manejarError(error: unknown): { ok: false; error: string } {
+  // redirect()/notFound() de Next.js lanzan para controlar el flujo; deben propagarse.
+  unstable_rethrow(error)
+  if (error instanceof AuthorizationError) {
+    return fail(error.code === 'NO_SESSION' ? MSG_SESION : MSG_NO_PERMISO)
+  }
+  console.error(error)
+  return fail(MSG_ERROR)
 }

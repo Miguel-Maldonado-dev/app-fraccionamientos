@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { revalidatePath } from 'next/cache'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { MSG_NO_PERMISO } from '@/lib/auth/run-action'
 import { createClient } from '@/lib/supabase/server'
 import { callsOf, fakeQuery, fakeSupabase } from '@/test/fake-query'
@@ -8,14 +8,14 @@ import { registrarMovimiento } from './actions'
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
-vi.mock('@/lib/auth/current-user', () => ({ getCurrentUser: vi.fn() }))
+vi.mock('@/lib/auth/tenant-context', () => ({ getCurrentUser: vi.fn() }))
 
 const userWith = (roleName: string) =>
-  ({ id: 'u1', email: 'a@b.c', userName: 'Ana', roleName, roleId: 3, isActive: true }) as never
+  ({ id: 'u1', email: 'a@b.c', userName: 'Ana', roleName, isActive: true }) as never
 
 const input = { tipoId: 2, descripcion: 'Pago de luz', importe: '150.50', metodoPagoId: 1, fechaMovimiento: '2026-10-05' }
 
-function setup(role = 'Tesorero', error?: { message: string }) {
+function setup(role = 'tesorero', error?: { message: string }) {
   vi.mocked(getCurrentUser).mockResolvedValue(userWith(role))
   const movimientos = fakeQuery(error ? { error } : {})
   vi.mocked(createClient).mockResolvedValue(fakeSupabase({ movimientos_financieros: movimientos }) as never)
@@ -50,7 +50,7 @@ test('inserta el movimiento con el user_id del usuario y revalida', async () => 
 })
 
 test('rol Comite no puede registrar', async () => {
-  const { movimientos } = setup('Comite')
+  const { movimientos } = setup('comite')
 
   expect(await registrarMovimiento(input)).toEqual({ ok: false, error: MSG_NO_PERMISO })
   expect(callsOf(movimientos, 'insert')).toHaveLength(0)

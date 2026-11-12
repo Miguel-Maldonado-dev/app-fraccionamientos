@@ -19,8 +19,8 @@ export function LoginForm({ next, error }: { next?: string; error?: string }) {
   return (
     <Card className="w-full max-w-[440px]">
       <CardHeader className="items-center justify-items-center gap-3 text-center">
-        <BrandLogo size={64} />
-        <h1 className="text-2xl font-bold">Bienvenido</h1>
+        <BrandLogo width={240} preload />
+        <h1 className="text-[26px] font-semibold">Bienvenido</h1>
         <p className="text-sm text-secondary-foreground">Inicia sesión en el panel de administración</p>
       </CardHeader>
       <CardContent>
@@ -54,7 +54,7 @@ export function LoginForm({ next, error }: { next?: string; error?: string }) {
           {message && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-md bg-danger-light p-3 text-sm text-danger"
+              className="flex items-start gap-2 rounded-md bg-danger-light p-3 text-sm text-danger-foreground"
             >
               <AlertCircle className="mt-0.5 size-4 shrink-0" />
               <span>{message}</span>

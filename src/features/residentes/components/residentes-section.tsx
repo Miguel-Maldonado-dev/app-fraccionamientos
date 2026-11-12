@@ -5,15 +5,19 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { Tables } from '@/lib/supabase/types'
+import type { AccionesResidentes } from './acciones'
 import { ResidenteActions } from './residente-actions'
 import { ResidenteDialog } from './residente-dialog'
 
 export function ResidentesSection({
   domicilioId,
   residentes,
+  acciones,
 }: {
   domicilioId: number
   residentes: Tables<'residentes'>[]
+  /** Por defecto, las del fraccionamiento. */
+  acciones?: AccionesResidentes
 }) {
   return (
     <SectionCard
@@ -22,6 +26,7 @@ export function ResidentesSection({
       action={
         <ResidenteDialog
           domicilioId={domicilioId}
+          acciones={acciones}
           trigger={
             <Button size="sm">
               <Plus />
@@ -61,7 +66,7 @@ export function ResidentesSection({
                   ) : null}
                 </TableCell>
                 <TableCell>
-                  <ResidenteActions domicilioId={domicilioId} residente={r} />
+                  <ResidenteActions domicilioId={domicilioId} residente={r} acciones={acciones} />
                 </TableCell>
               </TableRow>
             ))}

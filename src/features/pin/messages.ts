@@ -1,0 +1,6 @@
+export const MSG_PIN_SIN_SINCRONIZAR = 'El domicilio aún no está sincronizado'
+export const MSG_ACCESS_CORE_NO_CONFIGURADO = 'access-core no está configurado'
+export const MSG_PIN_INVALIDO = 'El PIN debe tener de 4 a 6 dígitos'
+export const MSG_PIN_GUARDADO = 'PIN guardado correctamente.'
+export const MSG_PIN_QUITADO = 'PIN quitado correctamente.'
+export const MSG_PIN_GESTIONADO = 'PIN gestionado por la administración'

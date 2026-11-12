@@ -1,8 +1,11 @@
 import type { NextRequest } from 'next/server'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { parseRouteId } from '@/lib/route-id'
 import { createClient } from '@/lib/supabase/server'
 import { getPagoRecibo } from '@/features/pagos/queries'
+import { parseRecibo } from '@/features/pagos/recibo/datos'
+import { cargarLogo } from '@/features/pagos/recibo/logo'
+import { generarReciboPdf } from '@/features/pagos/recibo/pdf'
 
 export async function GET(
   _request: NextRequest,
@@ -16,12 +19,13 @@ export async function GET(
 
   const supabase = await createClient()
   const pago = await getPagoRecibo(supabase, pagoId)
-  if (!pago || !pago.file_data) return new Response('Recibo no disponible', { status: 404 })
+  const datos = pago ? parseRecibo(pago.recibo) : null
+  if (!pago || !datos) return new Response('Recibo no disponible', { status: 404 })
 
-  const b64 = pago.file_data.replace(/^data:[^,]*;base64,/, '')
-  const bytes = Buffer.from(b64, 'base64')
+  // El PDF se genera al vuelo a partir de la foto JSON guardada al registrar el pago.
+  const bytes = await generarReciboPdf(datos, pago.referencia, await cargarLogo())
   const filename = pago.referencia.replace(/["\\\r\n]/g, '').replace(/[^\x20-\x7E]/g, '')
-  return new Response(bytes, {
+  return new Response(Buffer.from(bytes), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="${filename}.pdf"`,

@@ -40,7 +40,7 @@ describe('UltimosMovimientos', () => {
     const badge = screen.getByText('Egreso')
     const cell = badge.closest('td') as HTMLElement
     expect(within(cell).getByTestId('tipo-movimiento-icon')).toHaveClass('bg-danger-light')
-    expect(screen.getByText('- $100.00')).toHaveClass('text-danger')
+    expect(screen.getByText('- $100.00')).toHaveClass('text-danger-foreground')
   })
 
   it('la columna Fecha se muestra desde 1280 px para no generar scroll a 1024 px', () => {

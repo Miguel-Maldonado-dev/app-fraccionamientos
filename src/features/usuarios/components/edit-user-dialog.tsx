@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { Tables, Views } from '@/lib/supabase/types'
+import { ROL_LABEL, ROLES_FRACCIONAMIENTO } from '@/lib/constants'
+import type { Views } from '@/lib/supabase/types'
 import { actualizarUsuario } from '../actions'
 import { MSG_USUARIO_ACTUALIZADO } from '../messages'
 import { editarUsuarioSchema, type EditarUsuarioInput } from '../schemas'
@@ -19,12 +20,10 @@ const FORM_ID = 'edit-user-form'
 
 export function EditUserDialog({
   usuario,
-  roles,
   esUsuarioActual,
   trigger,
 }: {
   usuario: Views<'users_info'>
-  roles: Tables<'roles'>[]
   esUsuarioActual: boolean
   trigger: ReactNode
 }) {
@@ -32,7 +31,7 @@ export function EditUserDialog({
   const [open, setOpen] = useState(false)
   const initial: EditarUsuarioInput = {
     userName: usuario.user_name ?? '',
-    roleId: usuario.role_id ?? 0,
+    rol: usuario.rol as EditarUsuarioInput['rol'],
   }
   const {
     register,
@@ -98,38 +97,38 @@ export function EditUserDialog({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="edit-userName" className="text-xs font-medium">
-            Nombre <span className="text-danger">*</span>
+            Nombre <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="edit-userName" {...register('userName')} />
-          {errors.userName && <p className="text-xs text-danger">{errors.userName.message}</p>}
+          {errors.userName && <p className="text-xs text-danger-foreground">{errors.userName.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="edit-roleId" className="text-xs font-medium">
-            Rol <span className="text-danger">*</span>
+          <Label htmlFor="edit-rol" className="text-xs font-medium">
+            Rol <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
-            name="roleId"
+            name="rol"
             render={({ field }) => (
               <Select
-                value={field.value ? String(field.value) : ''}
-                onValueChange={(v) => field.onChange(Number(v))}
+                value={field.value ?? ''}
+                onValueChange={(v) => field.onChange(v)}
                 disabled={esUsuarioActual}
               >
-                <SelectTrigger id="edit-roleId" className="w-full">
+                <SelectTrigger id="edit-rol" className="w-full">
                   <SelectValue placeholder="Seleccionar rol..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map((r) => (
-                    <SelectItem key={r.id} value={String(r.id)}>
-                      {r.role_name}
+                  {ROLES_FRACCIONAMIENTO.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {ROL_LABEL[r]}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.roleId && <p className="text-xs text-danger">Selecciona un rol</p>}
+          {errors.rol && <p className="text-xs text-danger-foreground">Selecciona un rol</p>}
         </div>
       </form>
     </FormDialog>

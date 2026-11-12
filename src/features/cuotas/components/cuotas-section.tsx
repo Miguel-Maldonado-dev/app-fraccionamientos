@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/status-badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { Tables } from '@/lib/supabase/types'
+import { estatusVisible } from '../estatus'
 import type { CuotaInfo } from '../queries'
 import { EditarCuotaDialog } from './editar-cuota-dialog'
 import { GenerarCuotaDomicilioDialog } from './generar-cuota-domicilio-dialog'
@@ -62,7 +63,8 @@ export function CuotasSection({
           </TableHeader>
           <TableBody>
             {cuotas.map((c) => {
-              const editable = c.estatus === 'Pendiente' || c.estatus === 'Vencido'
+              const estatus = estatusVisible(c)
+              const editable = estatus === 'Pendiente' || estatus === 'En gracia' || estatus === 'Vencido'
               return (
                 <TableRow key={c.id}>
                   <TableCell>{c.periodo}</TableCell>
@@ -72,7 +74,7 @@ export function CuotasSection({
                   </TableCell>
                   <TableCell>{c.fecha_vencimiento_formated}</TableCell>
                   <TableCell>
-                    <StatusBadge status={c.estatus} />
+                    <StatusBadge status={estatus} />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
@@ -92,7 +94,7 @@ export function CuotasSection({
                           />
                         </>
                       )}
-                      {c.estatus === 'Pagado' && renderRecibo?.(c)}
+                      {estatus === 'Pagado' && renderRecibo?.(c)}
                     </div>
                   </TableCell>
                 </TableRow>

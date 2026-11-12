@@ -24,7 +24,7 @@ export function RowActions({ items, label = 'Acciones' }: { items: RowActionItem
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon-sm" aria-label={label}>
-          <MoreVertical />
+          <MoreVertical strokeWidth={1.75} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">

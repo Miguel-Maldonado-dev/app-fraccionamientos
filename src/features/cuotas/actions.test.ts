@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { revalidatePath } from 'next/cache'
 import { MSG_NO_PERMISO } from '@/lib/auth/run-action'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { createClient } from '@/lib/supabase/server'
 import { callsOf, fakeQuery, fakeSupabase } from '@/test/fake-query'
 import { editarCuota, eliminarDescuento, eliminarRecargo, generarCuotaDomicilio, generarCuotas } from './actions'
@@ -15,10 +15,10 @@ import {
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
-vi.mock('@/lib/auth/current-user', () => ({ getCurrentUser: vi.fn() }))
+vi.mock('@/lib/auth/tenant-context', () => ({ getCurrentUser: vi.fn() }))
 
 const userWith = (roleName: string) =>
-  ({ id: 'u1', email: 'a@b.c', userName: 'Ana', roleName, roleId: 3, isActive: true }) as never
+  ({ id: 'u1', email: 'a@b.c', userName: 'Ana', roleName, isActive: true }) as never
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe('generarCuotas', () => {
   test('rol Comite: sin permiso y no llama al rpc', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(userWith('Comite'))
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith('comite'))
     const rpc = vi.fn().mockResolvedValue({ data: null, error: null })
     vi.mocked(createClient).mockResolvedValue(fakeSupabase({}, { rpc }) as never)
     const r = await generarCuotas({ anio: 2026, mes: 3 })
@@ -35,7 +35,7 @@ describe('generarCuotas', () => {
   })
 
   test('Tesorero: llama al rpc y revalida', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(userWith('Tesorero'))
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith('tesorero'))
     const rpc = vi.fn().mockResolvedValue({ data: null, error: null })
     vi.mocked(createClient).mockResolvedValue(fakeSupabase({}, { rpc }) as never)
     const r = await generarCuotas({ anio: 2026, mes: 3 })
@@ -45,7 +45,7 @@ describe('generarCuotas', () => {
   })
 
   test('error del rpc se devuelve como fail', async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(userWith('Tesorero'))
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith('tesorero'))
     const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: 'x' } })
     vi.mocked(createClient).mockResolvedValue(fakeSupabase({}, { rpc }) as never)
     const r = await generarCuotas({ anio: 2026, mes: 3 })
@@ -55,59 +55,45 @@ describe('generarCuotas', () => {
 })
 
 describe('generarCuotaDomicilio', () => {
-  const concepto = { id: 1, domicilio_id: 5, concepto_id: 2, importe: 900 }
-
-  function setup(opts: { count: number; concepto: unknown; role?: string }) {
-    vi.mocked(getCurrentUser).mockResolvedValue(userWith(opts.role ?? 'Tesorero'))
-    const cuotas = fakeQuery({ count: opts.count })
-    const info = fakeQuery({ data: opts.concepto })
-    vi.mocked(createClient).mockResolvedValue(
-      fakeSupabase({ cuotas, domicilio_concepto_info: info }) as never,
-    )
-    return cuotas
+  function setup(opts: { error?: unknown; role?: string } = {}) {
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith(opts.role ?? 'tesorero'))
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: opts.error ?? null })
+    vi.mocked(createClient).mockResolvedValue(fakeSupabase({}, { rpc }) as never)
+    return rpc
   }
 
-  test('rol Comite: sin permiso', async () => {
-    const cuotas = setup({ count: 0, concepto, role: 'Comite' })
+  test('rol Comite: sin permiso y no llama al rpc', async () => {
+    const rpc = setup({ role: 'comite' })
     const r = await generarCuotaDomicilio(5, { anio: 2026, mes: 2 })
     expect(r).toEqual({ ok: false, error: MSG_NO_PERMISO })
-    expect(callsOf(cuotas, 'insert')).toHaveLength(0)
+    expect(rpc).not.toHaveBeenCalled()
   })
 
-  test('cuota duplicada: mensaje y sin insert', async () => {
-    const cuotas = setup({ count: 1, concepto })
+  test('cuota duplicada: mensaje', async () => {
+    setup({ error: { code: 'P0001', message: 'La cuota ya existe' } })
     const r = await generarCuotaDomicilio(5, { anio: 2026, mes: 2 })
     expect(r).toEqual({ ok: false, error: MSG_CUOTA_DUPLICADA })
-    expect(callsOf(cuotas, 'insert')).toHaveLength(0)
+    expect(revalidatePath).not.toHaveBeenCalled()
   })
 
-  test('sin concepto: mensaje y sin insert', async () => {
-    const cuotas = setup({ count: 0, concepto: null })
+  test('sin concepto: mensaje', async () => {
+    setup({ error: { code: 'P0001', message: 'El domicilio no tiene tipo de cuota' } })
     const r = await generarCuotaDomicilio(5, { anio: 2026, mes: 2 })
     expect(r).toEqual({ ok: false, error: MSG_SIN_CONCEPTO })
-    expect(callsOf(cuotas, 'insert')).toHaveLength(0)
   })
 
-  test('concepto con importe nulo: mensaje y sin insert', async () => {
-    const cuotas = setup({ count: 0, concepto: { ...concepto, importe: null } })
+  test('otro error: fallo genérico sin revalidar', async () => {
+    setup({ error: { code: '42501', message: 'x' } })
     const r = await generarCuotaDomicilio(5, { anio: 2026, mes: 2 })
-    expect(r).toEqual({ ok: false, error: MSG_SIN_CONCEPTO })
-    expect(callsOf(cuotas, 'insert')).toHaveLength(0)
+    expect(r.ok).toBe(false)
+    expect(revalidatePath).not.toHaveBeenCalled()
   })
 
-  test('válida: inserta con vencimiento fin de mes y revalida', async () => {
-    const cuotas = setup({ count: 0, concepto })
+  test('válida: llama al rpc y revalida', async () => {
+    const rpc = setup()
     const r = await generarCuotaDomicilio(5, { anio: 2026, mes: 2 })
     expect(r).toEqual({ ok: true, data: undefined })
-    expect(callsOf(cuotas, 'insert')[0].args[0]).toEqual({
-      domicilio_id: 5,
-      anio: 2026,
-      mes: 2,
-      fecha_vencimiento: '2026-02-28',
-      estatus_id: 1,
-      concepto_id: 2,
-      importe: 900,
-    })
+    expect(rpc).toHaveBeenCalledWith('generar_cuota_domicilio', { p_domicilio_id: 5, p_anio: 2026, p_mes: 2 })
     expect(revalidatePath).toHaveBeenCalledWith('/domicilios/5')
     expect(revalidatePath).toHaveBeenCalledWith('/cuotas')
     expect(MSG_CUOTA_GENERADA).toBe('Cuota generada correctamente.')
@@ -116,7 +102,7 @@ describe('generarCuotaDomicilio', () => {
 
 describe('editarCuota', () => {
   function setup(opts: { estatus: string | null; descuento?: unknown; recargo?: unknown; role?: string }) {
-    vi.mocked(getCurrentUser).mockResolvedValue(userWith(opts.role ?? 'Administrador'))
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith(opts.role ?? 'administrador'))
     const info = fakeQuery({ data: opts.estatus === null ? null : { id: 9, estatus: opts.estatus } })
     const descuento = fakeQuery({ data: opts.descuento ?? null })
     const recargo = fakeQuery({ data: opts.recargo ?? null })
@@ -127,7 +113,7 @@ describe('editarCuota', () => {
   }
 
   test('rol Comite: sin permiso', async () => {
-    const { descuento } = setup({ estatus: 'Pendiente', role: 'Comite' })
+    const { descuento } = setup({ estatus: 'Pendiente', role: 'comite' })
     const r = await editarCuota(9, 5, { conceptoDescuentoId: 1 })
     expect(r).toEqual({ ok: false, error: MSG_NO_PERMISO })
     expect(callsOf(descuento, 'insert')).toHaveLength(0)
@@ -144,6 +130,19 @@ describe('editarCuota', () => {
     const r = await editarCuota(9, 5, { conceptoDescuentoId: 1 })
     expect(r).toEqual({ ok: false, error: MSG_SOLO_PENDIENTES })
     expect(callsOf(descuento, 'insert')).toHaveLength(0)
+  })
+
+  test('cuota En gracia (calculada): es editable', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith('administrador'))
+    const info = fakeQuery({ data: { id: 9, estatus: 'Pendiente', estatus_calculado: 'En gracia' } })
+    const descuento = fakeQuery({ data: null })
+    const recargo = fakeQuery({ data: null })
+    vi.mocked(createClient).mockResolvedValue(
+      fakeSupabase({ cuotas_info: info, descuento_cuota: descuento, recargo_cuota: recargo }) as never,
+    )
+    const r = await editarCuota(9, 5, { conceptoDescuentoId: 1 })
+    expect(r).toEqual({ ok: true, data: undefined })
+    expect(callsOf(descuento, 'insert')).toHaveLength(1)
   })
 
   test('descuento existente: no inserta descuento pero sí recargo', async () => {
@@ -171,7 +170,7 @@ describe.each([
   { nombre: 'eliminarRecargo', eliminar: eliminarRecargo, tabla: 'recargo_cuota' },
 ])('$nombre', ({ eliminar, tabla }) => {
   function setup(estatus: string) {
-    vi.mocked(getCurrentUser).mockResolvedValue(userWith('Tesorero'))
+    vi.mocked(getCurrentUser).mockResolvedValue(userWith('tesorero'))
     const ajuste = fakeQuery({ data: { cuota_id: 9 } })
     const info = fakeQuery({ data: { id: 9, estatus } })
     vi.mocked(createClient).mockResolvedValue(fakeSupabase({ [tabla]: ajuste, cuotas_info: info }) as never)

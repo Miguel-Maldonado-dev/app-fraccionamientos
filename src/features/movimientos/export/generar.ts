@@ -13,11 +13,13 @@ import type { FilaExport, MetaExport } from './datos'
 const ENCABEZADOS = ['Tipo', 'Descripción', 'Importe', 'Fecha']
 const FORMATO_IMPORTE = '"+ "$#,##0.00;"- "$#,##0.00;$0.00'
 
-// Colores de la app (globals.css) en RGB para jsPDF.
-const PRIMARIO: [number, number, number] = [6, 95, 70]
-const EXITO: [number, number, number] = [21, 128, 61]
-const PELIGRO: [number, number, number] = [185, 28, 28]
-const TEXTO_SECUNDARIO: [number, number, number] = [100, 116, 139]
+// Colores de la marca WEADMI (globals.css) en RGB para jsPDF, que no lee CSS.
+type Rgb = [number, number, number]
+const PDF_NAVY: Rgb = [7, 31, 73] // #071F49
+const PDF_PRIMARIO: Rgb = [8, 107, 184] // #086BB8
+const PDF_TEXTO_SECUNDARIO: Rgb = [73, 105, 133] // #496985
+const EXITO: Rgb = [11, 122, 77] // --success-foreground #0B7A4D
+const PELIGRO: Rgb = [180, 47, 47] // --danger-foreground #B42F2F
 
 function fechaExcel(iso: string): Date | string {
   const [anio, mes, dia] = iso.split('-').map(Number)
@@ -46,9 +48,9 @@ export function crearPdf(filas: FilaExport[], meta: MetaExport): ArrayBuffer {
   const doc = new jsPDF({ unit: 'pt', format: 'letter' })
   const margen = 40
 
-  doc.setFont('helvetica', 'bold').setFontSize(16).setTextColor(20, 20, 20)
-  doc.text('Movimientos financieros · Lago Amadeo', margen, 50)
-  doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(...TEXTO_SECUNDARIO)
+  doc.setFont('helvetica', 'bold').setFontSize(16).setTextColor(...PDF_NAVY)
+  doc.text(`Movimientos financieros · ${meta.fraccionamientoNombre}`, margen, 50)
+  doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(...PDF_TEXTO_SECUNDARIO)
   doc.text(`Generado el ${formatDate(meta.generado)}`, margen, 68)
   doc.text(meta.filtros, margen, 82)
 
@@ -58,7 +60,7 @@ export function crearPdf(filas: FilaExport[], meta: MetaExport): ArrayBuffer {
     head: [ENCABEZADOS],
     body: filas.map((f) => [f.tipo, f.descripcion, importeTexto(f.importe), formatDate(f.fecha)]),
     styles: { fontSize: 9, cellPadding: 5, valign: 'middle' },
-    headStyles: { fillColor: PRIMARIO, textColor: 255, fontStyle: 'bold' },
+    headStyles: { fillColor: PDF_PRIMARIO, textColor: 255, fontStyle: 'bold' },
     columnStyles: { 2: { halign: 'right', cellWidth: 90 }, 3: { cellWidth: 70 }, 0: { cellWidth: 60 } },
     didParseCell: (data) => {
       if (data.column.index !== 2) return
@@ -68,7 +70,7 @@ export function crearPdf(filas: FilaExport[], meta: MetaExport): ArrayBuffer {
     didDrawPage: () => {
       const alto = doc.internal.pageSize.getHeight()
       const ancho = doc.internal.pageSize.getWidth()
-      doc.setFontSize(8).setTextColor(...TEXTO_SECUNDARIO)
+      doc.setFontSize(8).setTextColor(...PDF_TEXTO_SECUNDARIO)
       doc.text(`Página ${doc.getNumberOfPages()}`, ancho - margen, alto - 20, { align: 'right' })
     },
   })
@@ -86,7 +88,7 @@ export function crearPdf(filas: FilaExport[], meta: MetaExport): ArrayBuffer {
       ['Total de egresos', formatMoney(meta.totales.egresos)],
     ],
     styles: { fontSize: 10, cellPadding: 6 },
-    headStyles: { fillColor: PRIMARIO, textColor: 255, fontStyle: 'bold' },
+    headStyles: { fillColor: PDF_PRIMARIO, textColor: 255, fontStyle: 'bold' },
     columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
     didParseCell: (data) => {
       if (data.section === 'body' && data.column.index === 1) {

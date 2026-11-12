@@ -22,20 +22,20 @@ export function CamposCatalogo<T extends Campos>({
     <>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="catalogo-nombre" className="text-xs font-medium">
-          Nombre <span className="text-danger">*</span>
+          Nombre <span className="text-danger-foreground">*</span>
         </Label>
         <Input id="catalogo-nombre" maxLength={80} {...reg('nombre')} />
-        {err.nombre && <p className="text-xs text-danger">{err.nombre.message}</p>}
+        {err.nombre && <p className="text-xs text-danger-foreground">{err.nombre.message}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="catalogo-importe" className="text-xs font-medium">
-          {etiquetaMonto} <span className="text-danger">*</span>
+          {etiquetaMonto} <span className="text-danger-foreground">*</span>
         </Label>
         <Input id="catalogo-importe" inputMode="decimal" placeholder="0.00" {...reg('importe')} />
-        {err.importe && <p className="text-xs text-danger">{err.importe.message}</p>}
+        {err.importe && <p className="text-xs text-danger-foreground">{err.importe.message}</p>}
       </div>
       {avisos.map((a) => (
-        <p key={a} className="text-xs text-warning">
+        <p key={a} className="text-xs text-warning-foreground">
           {a}
         </p>
       ))}

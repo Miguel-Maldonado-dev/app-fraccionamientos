@@ -22,7 +22,15 @@ const TIPO_OPTIONS = [
   { value: String(TIPO_MOVIMIENTO.EGRESO), label: 'Egreso' },
 ]
 
-export function MovimientosView({ rows, saldo }: { rows: Views<'movimientos_info'>[]; saldo: number | null }) {
+export function MovimientosView({
+  rows,
+  saldo,
+  fraccionamientoNombre,
+}: {
+  rows: Views<'movimientos_info'>[]
+  saldo: number | null
+  fraccionamientoNombre: string
+}) {
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebouncedValue(query, 300)
   const [anio, setAnio] = useState<number | null>(null)
@@ -50,7 +58,13 @@ export function MovimientosView({ rows, saldo }: { rows: Views<'movimientos_info
         ]}
       />
       <FilterBar
-        actions={<ExportarMovimientos rows={filtradas} filtros={{ query: debouncedQuery, anio, mes, tipo }} />}
+        actions={
+          <ExportarMovimientos
+            rows={filtradas}
+            filtros={{ query: debouncedQuery, anio, mes, tipo }}
+            fraccionamientoNombre={fraccionamientoNombre}
+          />
+        }
         onClear={() => {
           setQuery('')
           setAnio(null)

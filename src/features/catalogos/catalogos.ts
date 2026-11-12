@@ -1,3 +1,4 @@
+import type { MedioAcceso } from '@/lib/constants'
 import {
   MSG_CONCEPTO_GUARDADO,
   MSG_DESCUENTO_GUARDADO,
@@ -10,8 +11,19 @@ export type TabCatalogo = 'cuotas' | CatalogoSimple
 
 export const TABS_CATALOGO: TabCatalogo[] = ['cuotas', 'extras', 'descuentos', 'recargos']
 
+/** Pestañas de Configuración: los catálogos más las reglas de cobro. */
+export type TabConfiguracion = TabCatalogo | 'reglas'
+export const TABS_CONFIGURACION: TabConfiguracion[] = [...TABS_CATALOGO, 'reglas']
+export const ETIQUETA_TAB_REGLAS = 'Reglas de cobro'
+
 export type ElementoCatalogo = { id: number; nombre: string; importe: number }
-export type TipoCuota = ElementoCatalogo & { accesoTelefono: boolean; accesoTarjeta: boolean }
+export type TipoCuota = ElementoCatalogo & {
+  medios: MedioAcceso[]
+  perfilCorrienteId: string | null
+  perfilCorrienteNombre: string | null
+  perfilMorosoId: string | null
+  perfilMorosoNombre: string | null
+}
 
 type ConfigCatalogo = {
   titulo: string

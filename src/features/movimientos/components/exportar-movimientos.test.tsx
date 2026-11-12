@@ -19,7 +19,7 @@ const rows = [mov(1, 1, 300), mov(2, 2, 120)]
 const filtros = { query: '', anio: 2026, mes: 3, tipo: null }
 
 async function exportar(opcion: RegExp) {
-  render(<ExportarMovimientos rows={rows} filtros={filtros} />)
+  render(<ExportarMovimientos rows={rows} filtros={filtros} fraccionamientoNombre="Fracc Demo" />)
   await userEvent.click(screen.getByRole('button', { name: 'Exportar' }))
   await userEvent.click(screen.getByRole('menuitem', { name: opcion }))
 }
@@ -45,13 +45,14 @@ describe('ExportarMovimientos', () => {
     expect(crearPdf.mock.lastCall![1]).toEqual({
       filtros: 'Año: 2026 · Mes: Marzo · Tipo: Todos',
       generado: '2026-11-05',
+      fraccionamientoNombre: 'Fracc Demo',
       totales: { ingresos: 300, egresos: 120 },
     })
     expect(descargar.mock.lastCall![1]).toBe('movimientos-2026-11-05.pdf')
   })
 
   it('sin movimientos el botón queda deshabilitado', () => {
-    render(<ExportarMovimientos rows={[]} filtros={filtros} />)
+    render(<ExportarMovimientos rows={[]} filtros={filtros} fraccionamientoNombre="Fracc Demo" />)
     expect(screen.getByRole('button', { name: 'Exportar' })).toBeDisabled()
   })
 })

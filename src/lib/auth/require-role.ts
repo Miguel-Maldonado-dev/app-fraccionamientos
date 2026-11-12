@@ -1,4 +1,4 @@
-import { getCurrentUser, type CurrentUser } from '@/lib/auth/current-user'
+import { estadoAcceso, getCurrentUser, getTenantContext, type CurrentUser } from '@/lib/auth/tenant-context'
 import type { RoleName } from '@/lib/constants'
 
 export class AuthorizationError extends Error {
@@ -27,4 +27,15 @@ export async function requireRole(...roles: RoleName[]): Promise<CurrentUser> {
   const user = await requireUser()
   if (!hasRole(user, roles)) throw new AuthorizationError('FORBIDDEN')
   return user
+}
+
+/**
+ * Exige al super admin activo de la plataforma. Sin sesión lanza `AuthorizationError('NO_SESSION')`;
+ * con cualquier otro estado (incluido un super admin inactivo) lanza `AuthorizationError('FORBIDDEN')`.
+ */
+export async function requireSuperAdmin(): Promise<{ id: string; email: string }> {
+  const ctx = await getTenantContext()
+  if (!ctx) throw new AuthorizationError('NO_SESSION')
+  if (estadoAcceso(ctx) !== 'super_admin') throw new AuthorizationError('FORBIDDEN')
+  return { id: ctx.userId, email: ctx.email }
 }

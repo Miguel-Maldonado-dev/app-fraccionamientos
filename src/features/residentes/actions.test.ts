@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { revalidatePath } from 'next/cache'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
+import { MSG_NO_PERMISO } from '@/lib/auth/run-action'
 import { createClient } from '@/lib/supabase/server'
 import { callsOf, fakeQuery, fakeSupabase } from '@/test/fake-query'
 import { actualizarResidente, crearResidente, eliminarResidente } from './actions'
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
-vi.mock('@/lib/auth/current-user', () => ({ getCurrentUser: vi.fn() }))
+vi.mock('@/lib/auth/tenant-context', () => ({ getCurrentUser: vi.fn() }))
 
-const user = { id: 'u1', email: 'a@b.c', userName: 'Ana', roleName: 'Comite', roleId: 3, isActive: true }
+const user = { id: 'u1', email: 'a@b.c', userName: 'Ana', roleName: 'administrador', isActive: true }
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -67,5 +68,15 @@ describe('eliminarResidente', () => {
     expect(callsOf(q, 'eq')[0].args).toEqual(['id', 3])
     expect(revalidatePath).toHaveBeenCalledWith('/domicilios/9')
     expect(revalidatePath).toHaveBeenCalledWith('/residentes')
+  })
+})
+
+describe('permisos', () => {
+  test('un tesorero no puede crear, actualizar ni eliminar residentes', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({ ...user, roleName: 'tesorero' } as never)
+    expect(await crearResidente(9, { nombre: 'ana' })).toEqual({ ok: false, error: MSG_NO_PERMISO })
+    expect(await actualizarResidente(3, 9, { nombre: 'ana' })).toEqual({ ok: false, error: MSG_NO_PERMISO })
+    expect(await eliminarResidente(3, 9)).toEqual({ ok: false, error: MSG_NO_PERMISO })
+    expect(createClient).not.toHaveBeenCalled()
   })
 })

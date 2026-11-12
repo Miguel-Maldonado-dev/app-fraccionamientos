@@ -6,19 +6,22 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Button } from '@/components/ui/button'
-import type { Tables, Views } from '@/lib/supabase/types'
+import type { ActionResult } from '@/lib/action-result'
+import type { Views } from '@/lib/supabase/types'
 import { cambiarEstadoUsuario } from '../actions'
 import { MSG_USUARIO_ACTIVADO, MSG_USUARIO_DESACTIVADO } from '../messages'
 import { EditUserDialog } from './edit-user-dialog'
 
 export function UsuarioActions({
   usuario,
-  roles,
   currentUserId,
+  cambiarEstado: accion = cambiarEstadoUsuario,
+  permitirEditar = true,
 }: {
   usuario: Views<'users_info'>
-  roles: Tables<'roles'>[]
   currentUserId: string
+  cambiarEstado?: (id: string, activo: boolean) => Promise<ActionResult>
+  permitirEditar?: boolean
 }) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
@@ -26,7 +29,7 @@ export function UsuarioActions({
   const esUsuarioActual = id === currentUserId
 
   async function cambiarEstado(isActive: boolean) {
-    const result = await cambiarEstadoUsuario(id, isActive)
+    const result = await accion(id, isActive)
     if (!result.ok) throw new Error(result.error)
     toast.success(isActive ? MSG_USUARIO_ACTIVADO : MSG_USUARIO_DESACTIVADO)
     router.refresh()
@@ -45,16 +48,17 @@ export function UsuarioActions({
 
   return (
     <div className="flex justify-end gap-1">
-      <EditUserDialog
-        usuario={usuario}
-        roles={roles}
-        esUsuarioActual={esUsuarioActual}
-        trigger={
-          <Button variant="ghost" size="icon-sm" aria-label="Editar usuario">
-            <Pencil />
-          </Button>
-        }
-      />
+      {permitirEditar && (
+        <EditUserDialog
+          usuario={usuario}
+          esUsuarioActual={esUsuarioActual}
+          trigger={
+            <Button variant="ghost" size="icon-sm" aria-label="Editar usuario">
+              <Pencil />
+            </Button>
+          }
+        />
+      )}
       {usuario.is_active && !esUsuarioActual && (
         <ConfirmDialog
           title="Desactivar Usuario"

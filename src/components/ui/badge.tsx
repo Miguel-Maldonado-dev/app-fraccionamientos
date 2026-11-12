@@ -8,16 +8,16 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        success: "bg-success-light text-success",
-        danger: "bg-danger-light text-danger",
-        warning: "bg-warning-light text-warning",
-        info: "bg-info-light text-info",
-        neutral: "bg-muted text-secondary-foreground",
+        success: "bg-success-light text-success-foreground",
+        danger: "bg-danger-light text-danger-foreground",
+        warning: "bg-warning-light text-warning-foreground",
+        info: "bg-info-light text-info-foreground",
+        neutral: "bg-neutral-light text-neutral-foreground",
         primary: "bg-primary-light text-primary",
         // Nombres heredados de shadcn, mapeados a la paleta nueva.
         default: "bg-primary-light text-primary",
         secondary: "bg-muted text-secondary-foreground",
-        destructive: "bg-danger-light text-danger",
+        destructive: "bg-danger-light text-danger-foreground",
         outline: "border border-border bg-card text-foreground",
       },
     },
@@ -26,6 +26,17 @@ const badgeVariants = cva(
     },
   }
 )
+
+const DOT: Partial<Record<string, string>> = {
+  success: "bg-success",
+  danger: "bg-danger",
+  warning: "bg-warning",
+  info: "bg-info",
+  neutral: "bg-neutral",
+  primary: "bg-brand-primary",
+  default: "bg-brand-primary",
+  destructive: "bg-danger",
+}
 
 type BadgeVariant = "success" | "danger" | "warning" | "info" | "neutral" | "primary"
 
@@ -52,7 +63,10 @@ function Badge({
       ) : (
         <>
           {dot && (
-            <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-current" />
+            <span
+              aria-hidden
+              className={cn("size-1.5 shrink-0 rounded-full", DOT[variant ?? "neutral"] ?? "bg-current")}
+            />
           )}
           {children}
         </>

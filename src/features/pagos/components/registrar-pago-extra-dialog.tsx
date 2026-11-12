@@ -16,7 +16,7 @@ import { todayISO } from '@/lib/dates'
 import { formatMoney } from '@/lib/format'
 import type { Tables } from '@/lib/supabase/types'
 import { registrarPagoExtra } from '../actions'
-import { MSG_PAGO_OK, MSG_SIN_RECIBO } from '../messages'
+import { MSG_PAGO_OK } from '../messages'
 import { pagoExtraSchema } from '../schemas'
 
 const MSG_ERROR_GENERICO = 'Ocurrió un error inesperado. Intenta de nuevo.'
@@ -65,7 +65,6 @@ export function RegistrarPagoExtraDialog({
       const result = await registrarPagoExtra(values)
       if (result.ok) {
         toast.success(MSG_PAGO_OK)
-        if (!result.data.reciboGenerado) toast.warning(MSG_SIN_RECIBO)
         setOpen(false)
         router.refresh()
       } else {
@@ -109,7 +108,7 @@ export function RegistrarPagoExtraDialog({
       >
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="pago-extra-domicilio" className="text-xs font-medium">
-            Dirección <span className="text-danger">*</span>
+            Dirección <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
@@ -125,11 +124,11 @@ export function RegistrarPagoExtraDialog({
               />
             )}
           />
-          {errors.domicilioId && <p className="text-xs text-danger">Selecciona una dirección</p>}
+          {errors.domicilioId && <p className="text-xs text-danger-foreground">Selecciona una dirección</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="conceptoId" className="text-xs font-medium">
-            Concepto <span className="text-danger">*</span>
+            Concepto <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
@@ -149,7 +148,7 @@ export function RegistrarPagoExtraDialog({
               </Select>
             )}
           />
-          {errors.conceptoId && <p className="text-xs text-danger">Selecciona un concepto</p>}
+          {errors.conceptoId && <p className="text-xs text-danger-foreground">Selecciona un concepto</p>}
         </div>
         <dl className="grid grid-cols-2 gap-3 rounded-md bg-muted p-4 md:col-span-2">
           <div className="flex flex-col gap-1">
@@ -159,14 +158,14 @@ export function RegistrarPagoExtraDialog({
         </dl>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="fechaPago" className="text-xs font-medium">
-            Fecha de Pago <span className="text-danger">*</span>
+            Fecha de Pago <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="fechaPago" type="date" max={todayISO()} {...register('fechaPago')} />
-          {errors.fechaPago && <p className="text-xs text-danger">{errors.fechaPago.message}</p>}
+          {errors.fechaPago && <p className="text-xs text-danger-foreground">{errors.fechaPago.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="metodoPagoId" className="text-xs font-medium">
-            Método de Pago <span className="text-danger">*</span>
+            Método de Pago <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
@@ -186,7 +185,7 @@ export function RegistrarPagoExtraDialog({
               </Select>
             )}
           />
-          {errors.metodoPagoId && <p className="text-xs text-danger">Selecciona un método de pago</p>}
+          {errors.metodoPagoId && <p className="text-xs text-danger-foreground">Selecciona un método de pago</p>}
         </div>
       </form>
     </FormDialog>

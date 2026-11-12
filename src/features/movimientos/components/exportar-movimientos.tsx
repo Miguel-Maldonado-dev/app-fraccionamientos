@@ -32,9 +32,11 @@ const MIME: Record<Formato, string> = {
 export function ExportarMovimientos({
   rows,
   filtros,
+  fraccionamientoNombre,
 }: {
   rows: Views<'movimientos_info'>[]
   filtros: FiltrosMovimientos
+  fraccionamientoNombre: string
 }) {
   const [generando, setGenerando] = useState(false)
 
@@ -47,7 +49,12 @@ export function ExportarMovimientos({
       const contenido =
         formato === 'xlsx'
           ? await crearExcel(filas)
-          : crearPdf(filas, { filtros: describirFiltros(filtros), generado: hoy, totales: resumenExport(rows) })
+          : crearPdf(filas, {
+              filtros: describirFiltros(filtros),
+              generado: hoy,
+              fraccionamientoNombre,
+              totales: resumenExport(rows),
+            })
       descargar(new Blob([contenido], { type: MIME[formato] }), nombreArchivo(formato, hoy))
     } catch {
       toast.error('No se pudo generar el archivo. Inténtalo de nuevo.')

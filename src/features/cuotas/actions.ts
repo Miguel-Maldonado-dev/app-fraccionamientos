@@ -3,8 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { fail, ok, type ActionResult } from '@/lib/action-result'
 import { runAction } from '@/lib/auth/run-action'
-import { ESTATUS, ROLES_GESTION } from '@/lib/constants'
-import { lastDayOfMonthISO } from '@/lib/dates'
+import { ROLES_GESTION } from '@/lib/constants'
 import type { Tables } from '@/lib/supabase/types'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -14,13 +13,12 @@ import {
   MSG_SOLO_PENDIENTES,
 } from './messages'
 import {
-  existeCuota,
   getCuotaInfo,
   getDescuentoCuota,
-  getDomicilioConceptoInfo,
   getRecargoCuota,
   type CuotaInfo,
 } from './queries'
+import { estatusVisible } from './estatus'
 import { periodoSchema } from './schemas'
 
 // --- Generación masiva ---
@@ -47,9 +45,10 @@ function revalidar(domicilioId: number) {
   revalidatePath('/cuotas')
 }
 
-/** Solo las cuotas Pendiente o Vencido admiten cambios en sus descuentos y recargos. */
+/** Solo las cuotas Pendiente, En gracia o Vencido admiten cambios en sus descuentos y recargos. */
 function esEditable(cuota: CuotaInfo): boolean {
-  return cuota.estatus === 'Pendiente' || cuota.estatus === 'Vencido'
+  const estatus = estatusVisible(cuota)
+  return estatus === 'Pendiente' || estatus === 'En gracia' || estatus === 'Vencido'
 }
 
 export async function generarCuotaDomicilio(
@@ -62,21 +61,16 @@ export async function generarCuotaDomicilio(
 
   return runAction(ROLES_GESTION, async () => {
     const supabase = await createClient()
-    if (await existeCuota(supabase, domicilioId, anio, mes)) return fail(MSG_CUOTA_DUPLICADA)
-
-    const concepto = await getDomicilioConceptoInfo(supabase, domicilioId)
-    if (!concepto || concepto.concepto_id === null || concepto.importe === null) return fail(MSG_SIN_CONCEPTO)
-
-    const { error } = await supabase.from('cuotas').insert({
-      domicilio_id: domicilioId,
-      anio,
-      mes,
-      fecha_vencimiento: lastDayOfMonthISO(anio, mes),
-      estatus_id: ESTATUS.PENDIENTE,
-      concepto_id: concepto.concepto_id,
-      importe: concepto.importe,
+    const { error } = await supabase.rpc('generar_cuota_domicilio', {
+      p_domicilio_id: domicilioId,
+      p_anio: anio,
+      p_mes: mes,
     })
-    if (error) throw new Error(error.message)
+    if (error) {
+      if (error.code === 'P0001' && error.message === 'La cuota ya existe') return fail(MSG_CUOTA_DUPLICADA)
+      if (error.code === 'P0001' && error.message === 'El domicilio no tiene tipo de cuota') return fail(MSG_SIN_CONCEPTO)
+      throw new Error(error.message)
+    }
 
     revalidar(domicilioId)
     return ok(undefined)

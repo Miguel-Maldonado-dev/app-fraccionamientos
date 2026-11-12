@@ -26,10 +26,10 @@ export function SectionCard({
       <div className={cn('flex justify-between gap-4 p-5', description ? 'items-start' : 'items-center')}>
         <div className="flex items-start gap-3">
           {Icon ? (
-            <Icon data-slot="section-card-icon" className="mt-0.5 size-6 shrink-0" aria-hidden="true" />
+            <Icon data-slot="section-card-icon" className="mt-0.5 size-6 shrink-0 text-brand-primary" aria-hidden="true" />
           ) : null}
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold">{title}</h2>
+            <h3 className="font-heading text-xl font-semibold text-brand-navy">{title}</h3>
             {description ? <p className="text-sm text-secondary-foreground">{description}</p> : null}
           </div>
         </div>

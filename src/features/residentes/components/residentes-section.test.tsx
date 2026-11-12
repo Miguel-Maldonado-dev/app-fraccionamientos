@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { Tables } from '@/lib/supabase/types'
 import { ResidentesSection } from './residentes-section'
@@ -13,6 +14,7 @@ vi.mock('../actions', () => ({
 const residente = (id: number, nombre: string, es_principal: boolean): Tables<'residentes'> => ({
   id,
   domicilio_id: 7,
+  fraccionamiento_id: 1,
   nombre,
   telefono: '5551234567',
   es_principal,
@@ -43,5 +45,22 @@ describe('ResidentesSection', () => {
     render(<ResidentesSection domicilioId={7} residentes={[residente(1, 'Ana López', true)]} />)
     expect(screen.getByRole('button', { name: 'Editar Ana López' })).toHaveAttribute('data-variant', 'secondary')
     expect(screen.getByRole('button', { name: 'Eliminar Ana López' })).toHaveAttribute('data-variant', 'secondary')
+  })
+})
+
+describe('ResidentesSection · acciones personalizadas', () => {
+  it('el botón de eliminar llama a la acción recibida', async () => {
+    const acciones = {
+      crear: vi.fn(),
+      actualizar: vi.fn(),
+      eliminar: vi.fn().mockResolvedValue({ ok: true, data: undefined }),
+    }
+    const user = userEvent.setup()
+    render(<ResidentesSection domicilioId={7} residentes={[residente(1, 'Ana López', true)]} acciones={acciones} />)
+    await user.click(screen.getByRole('button', { name: 'Eliminar Ana López' }))
+    await user.click(screen.getByRole('button', { name: 'Eliminar' }))
+    expect(acciones.eliminar).toHaveBeenCalledWith(1, 7)
+    const { eliminarResidente } = await import('../actions')
+    expect(eliminarResidente).not.toHaveBeenCalled()
   })
 })

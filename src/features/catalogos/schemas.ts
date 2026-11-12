@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MEDIOS_ACCESO } from '@/lib/constants'
 
 const IMPORTE_TEXTO = /^\d+(\.\d+)?$/
 const IMPORTE_MAXIMO = 999_999.99
@@ -22,10 +23,26 @@ export const catalogoSchema = z.object({
   importe: importeSchema,
 })
 
+// Permiso de access-core: uuid, o vacío ('' del Select "Ninguno") -> null.
+const perfilIdSchema = z
+  .union([z.guid('Permiso no válido'), z.literal('')])
+  .nullish()
+  .transform((v) => v || null)
+const perfilNombreSchema = z
+  .string()
+  .trim()
+  .max(120)
+  .nullish()
+  .transform((v) => v || null)
+
 export const tipoCuotaSchema = catalogoSchema.extend({
-  accesoTelefono: z.boolean(),
-  accesoTarjeta: z.boolean(),
+  medios: z.array(z.enum(MEDIOS_ACCESO)),
+  perfilCorrienteId: perfilIdSchema,
+  perfilCorrienteNombre: perfilNombreSchema,
+  perfilMorosoId: perfilIdSchema,
+  perfilMorosoNombre: perfilNombreSchema,
 })
 
 export type CatalogoInput = z.input<typeof catalogoSchema>
 export type TipoCuotaInput = z.input<typeof tipoCuotaSchema>
+export type TipoCuotaOutput = z.output<typeof tipoCuotaSchema>

@@ -5,7 +5,7 @@ import { SectionCard } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { CATALOGOS, type CatalogoSimple, type ElementoCatalogo } from '../catalogos'
-import { CatalogoDialog } from './catalogo-dialog'
+import { CatalogoDialog, type GuardarCatalogo } from './catalogo-dialog'
 
 const ICONOS: Record<CatalogoSimple, LucideIcon> = {
   extras: Banknote,
@@ -13,7 +13,15 @@ const ICONOS: Record<CatalogoSimple, LucideIcon> = {
   recargos: TriangleAlert,
 }
 
-export function CatalogoSection({ catalogo, rows }: { catalogo: CatalogoSimple; rows: ElementoCatalogo[] }) {
+export function CatalogoSection({
+  catalogo,
+  rows,
+  guardar,
+}: {
+  catalogo: CatalogoSimple
+  rows: ElementoCatalogo[]
+  guardar?: GuardarCatalogo
+}) {
   const config = CATALOGOS[catalogo]
   const Icono = ICONOS[catalogo]
   return (
@@ -24,6 +32,7 @@ export function CatalogoSection({ catalogo, rows }: { catalogo: CatalogoSimple; 
       action={
         <CatalogoDialog
           catalogo={catalogo}
+          guardar={guardar}
           trigger={
             <Button size="sm">
               <Plus />
@@ -56,6 +65,7 @@ export function CatalogoSection({ catalogo, rows }: { catalogo: CatalogoSimple; 
                     <CatalogoDialog
                       catalogo={catalogo}
                       item={r}
+                      guardar={guardar}
                       trigger={
                         <Button variant="secondary" size="icon-sm" aria-label={`Editar ${r.nombre}`}>
                           <Pencil />

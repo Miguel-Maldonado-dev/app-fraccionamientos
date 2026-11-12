@@ -20,7 +20,7 @@ export function FilterBar({
     <Card className="flex flex-row flex-wrap items-end gap-3 p-4">
       {children}
       {onClear && (
-        <Button type="button" variant="secondary" onClick={onClear} className="md:ml-auto">
+        <Button type="button" variant="secondary" size="sm" onClick={onClear} className="md:ml-auto">
           <FilterX /> {clearLabel}
         </Button>
       )}

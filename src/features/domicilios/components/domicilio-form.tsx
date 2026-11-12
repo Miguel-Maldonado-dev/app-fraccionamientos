@@ -24,14 +24,23 @@ export function DomicilioForm({
   allowSinAsignar = true,
   formId,
   hideSubmit = false,
+  mostrarTipoCuota = true,
+  mostrarImporte = true,
+  onConceptoChange,
 }: {
   defaultValues?: Partial<DomicilioInput>
-  conceptos: Tables<'conceptos_pago'>[]
+  /** Sin `importe` (consola del super admin) no se muestra dinero. */
+  conceptos: (Pick<Tables<'conceptos_pago'>, 'id' | 'nombre'> & Partial<Pick<Tables<'conceptos_pago'>, 'importe'>>)[]
   onSubmit: (input: DomicilioInput) => Promise<void>
   submitLabel: string
   allowSinAsignar?: boolean
   formId?: string
   hideSubmit?: boolean
+  mostrarTipoCuota?: boolean
+  /** Con `false` el tipo de cuota se lista solo por nombre. */
+  mostrarImporte?: boolean
+  /** Avisa cada cambio del tipo de cuota (p. ej. para advertir qué medios se ocultan). */
+  onConceptoChange?: (conceptoId: number | undefined) => void
 }) {
   const {
     register,
@@ -51,40 +60,45 @@ export function DomicilioForm({
       noValidate
     >
       <div className="flex flex-col gap-1.5 md:col-span-2">
-        <Label htmlFor="direccion" className="text-xs font-medium">Dirección <span className="text-danger">*</span></Label>
+        <Label htmlFor="direccion" className="text-xs font-medium">Dirección <span className="text-danger-foreground">*</span></Label>
         <Input id="direccion" className="uppercase" {...register('direccion')} />
-        {errors.direccion && <p className="text-xs text-danger">{errors.direccion.message}</p>}
+        {errors.direccion && <p className="text-xs text-danger-foreground">{errors.direccion.message}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="fechaAlta" className="text-xs font-medium">Fecha de Registro <span className="text-danger">*</span></Label>
+        <Label htmlFor="fechaAlta" className="text-xs font-medium">Fecha de Registro <span className="text-danger-foreground">*</span></Label>
         <Input id="fechaAlta" type="date" {...register('fechaAlta')} />
-        {errors.fechaAlta && <p className="text-xs text-danger">{errors.fechaAlta.message}</p>}
+        {errors.fechaAlta && <p className="text-xs text-danger-foreground">{errors.fechaAlta.message}</p>}
       </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="conceptoId" className="text-xs font-medium">Tipo de Cuota Mensual</Label>
-        <Controller
-          control={control}
-          name="conceptoId"
-          render={({ field }) => (
-            <Select
-              value={field.value ? String(field.value) : SIN_ASIGNAR}
-              onValueChange={(v) => field.onChange(v === SIN_ASIGNAR ? undefined : v)}
-            >
-              <SelectTrigger id="conceptoId" className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {allowSinAsignar && <SelectItem value={SIN_ASIGNAR}>Sin asignar</SelectItem>}
-                {conceptos.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    {`${c.nombre} — ${formatMoney(c.importe)}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-      </div>
+      {mostrarTipoCuota && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="conceptoId" className="text-xs font-medium">Tipo de Cuota Mensual</Label>
+          <Controller
+            control={control}
+            name="conceptoId"
+            render={({ field }) => (
+              <Select
+                value={field.value ? String(field.value) : SIN_ASIGNAR}
+                onValueChange={(v) => {
+                  field.onChange(v === SIN_ASIGNAR ? undefined : v)
+                  onConceptoChange?.(v === SIN_ASIGNAR ? undefined : Number(v))
+                }}
+              >
+                <SelectTrigger id="conceptoId" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {allowSinAsignar && <SelectItem value={SIN_ASIGNAR}>Sin asignar</SelectItem>}
+                  {conceptos.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {mostrarImporte && c.importe !== undefined ? `${c.nombre} — ${formatMoney(c.importe)}` : c.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+      )}
       <div className="flex flex-col gap-1.5 md:col-span-2">
         <Label htmlFor="observaciones" className="text-xs font-medium">Observaciones</Label>
         <Textarea id="observaciones" {...register('observaciones')} />

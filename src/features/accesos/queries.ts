@@ -27,3 +27,13 @@ export async function listTarjetas(
   if (error) throw new Error(`No se pudieron leer las tarjetas de acceso: ${error.message}`)
   return data ?? []
 }
+
+/** Cuántos controles tiene el domicilio (para avisar cuántos se ocultan al cambiar el tipo de cuota). */
+export async function contarControles(supabase: SupabaseClient<Database>, domicilioId: number): Promise<number> {
+  const { count, error } = await supabase
+    .from('controles_acceso')
+    .select('id', { count: 'exact', head: true })
+    .eq('domicilio_id', domicilioId)
+  if (error) throw new Error(`No se pudieron contar los controles de acceso: ${error.message}`)
+  return count ?? 0
+}

@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   ])
   return (
     <div className="space-y-6">
-      <PageHeader title="Inicio" description="Resumen general del fraccionamiento Lago Amadeo." breadcrumbs={[]} />
+      <PageHeader title="Inicio" description="Resumen general del fraccionamiento." breadcrumbs={[]} />
       <ResumenCards resumen={resumen} totalUnidades={domicilios.length} />
       <ResumenMeses resumen={resumen} />
       <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">

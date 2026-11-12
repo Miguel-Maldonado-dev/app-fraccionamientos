@@ -9,6 +9,7 @@ import { MetricGroup } from '@/components/metric-group'
 import { Card } from '@/components/ui/card'
 import { formatMoney } from '@/lib/format'
 import { formatPercent } from '@/lib/percent'
+import { estatusVisible } from '../estatus'
 import type { CuotaInfo } from '../queries'
 import { cuotasMetrics } from './cuotas-metrics'
 import { CuotasTable } from './cuotas-table'
@@ -34,7 +35,7 @@ export function CuotasView({
   const [estatus, setEstatus] = useState<string | null>(null)
 
   const filtradas = useMemo(
-    () => (estatus ? rows.filter((r) => r.estatus === estatus) : rows),
+    () => (estatus ? rows.filter((r) => estatusVisible(r) === estatus) : rows),
     [rows, estatus],
   )
   const m = useMemo(() => cuotasMetrics(filtradas), [filtradas])

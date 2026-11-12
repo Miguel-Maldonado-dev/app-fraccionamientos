@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { Tables } from '@/lib/supabase/types'
+import type { ActionResult } from '@/lib/action-result'
+import { ROL_LABEL, ROLES_FRACCIONAMIENTO } from '@/lib/constants'
 import { crearUsuario } from '../actions'
 import { MSG_USUARIO_CREADO } from '../messages'
 import { nuevoUsuarioSchema, type NuevoUsuarioInput } from '../schemas'
@@ -22,10 +23,15 @@ const EMPTY = {
   userName: '',
   email: '',
   password: '',
-  roleId: undefined as unknown as number,
+  rol: undefined as unknown as NuevoUsuarioInput['rol'],
 }
 
-export function AddUserDialog({ roles }: { roles: Tables<'roles'>[] }) {
+/** `crear` permite usar otra Server Action (p. ej. la de la consola); por defecto, `crearUsuario`. */
+export function AddUserDialog({
+  crear = crearUsuario,
+}: {
+  crear?: (input: NuevoUsuarioInput) => Promise<ActionResult>
+} = {}) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -42,7 +48,7 @@ export function AddUserDialog({ roles }: { roles: Tables<'roles'>[] }) {
 
   async function onSubmit(values: NuevoUsuarioInput) {
     try {
-      const result = await crearUsuario(values)
+      const result = await crear(values)
       if (result.ok) {
         toast.success(MSG_USUARIO_CREADO)
         setOpen(false)
@@ -66,13 +72,13 @@ export function AddUserDialog({ roles }: { roles: Tables<'roles'>[] }) {
 
   return (
     <FormDialog
-      title="Nuevo Usuario"
+      title="Nuevo usuario"
       description="Crea una cuenta de acceso al sistema y asígnale un rol."
       open={open}
       onOpenChange={handleOpenChange}
       trigger={
         <Button>
-          <Plus /> Nuevo Usuario
+          <Plus /> Nuevo usuario
         </Button>
       }
       footer={
@@ -94,21 +100,21 @@ export function AddUserDialog({ roles }: { roles: Tables<'roles'>[] }) {
       >
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="userName" className="text-xs font-medium">
-            Nombre <span className="text-danger">*</span>
+            Nombre <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="userName" {...register('userName')} />
-          {errors.userName && <p className="text-xs text-danger">{errors.userName.message}</p>}
+          {errors.userName && <p className="text-xs text-danger-foreground">{errors.userName.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email" className="text-xs font-medium">
-            Email <span className="text-danger">*</span>
+            Email <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="email" type="email" autoComplete="off" {...register('email')} />
-          {errors.email && <p className="text-xs text-danger">{errors.email.message}</p>}
+          {errors.email && <p className="text-xs text-danger-foreground">{errors.email.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="password" className="text-xs font-medium">
-            Contraseña <span className="text-danger">*</span>
+            Contraseña <span className="text-danger-foreground">*</span>
           </Label>
           <div className="flex gap-2">
             <Input
@@ -127,31 +133,31 @@ export function AddUserDialog({ roles }: { roles: Tables<'roles'>[] }) {
               {showPassword ? <EyeOff /> : <Eye />}
             </Button>
           </div>
-          {errors.password && <p className="text-xs text-danger">{errors.password.message}</p>}
+          {errors.password && <p className="text-xs text-danger-foreground">{errors.password.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="roleId" className="text-xs font-medium">
-            Rol de Usuario <span className="text-danger">*</span>
+          <Label htmlFor="rol" className="text-xs font-medium">
+            Rol de Usuario <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
-            name="roleId"
+            name="rol"
             render={({ field }) => (
-              <Select value={field.value ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
-                <SelectTrigger id="roleId" className="w-full">
+              <Select value={field.value ?? ''} onValueChange={(v) => field.onChange(v)}>
+                <SelectTrigger id="rol" className="w-full">
                   <SelectValue placeholder="Seleccionar rol..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map((r) => (
-                    <SelectItem key={r.id} value={String(r.id)}>
-                      {r.role_name}
+                  {ROLES_FRACCIONAMIENTO.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {ROL_LABEL[r]}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.roleId && <p className="text-xs text-danger">Selecciona un rol</p>}
+          {errors.rol && <p className="text-xs text-danger-foreground">Selecciona un rol</p>}
         </div>
       </form>
     </FormDialog>

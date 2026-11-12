@@ -28,7 +28,7 @@ describe('SectionCard', () => {
     )
     const icon = container.querySelector('[data-slot="section-card-icon"]')
     expect(icon).toHaveAttribute('aria-hidden', 'true')
-    expect(screen.getByRole('heading', { level: 2, name: 'Residentes' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'Residentes' })).toBeInTheDocument()
   })
 
   it('sin ícono no lo renderiza', () => {

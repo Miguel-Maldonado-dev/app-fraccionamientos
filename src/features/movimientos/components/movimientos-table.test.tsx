@@ -18,13 +18,13 @@ const row = (over: Partial<Views<'movimientos_info'>>): Views<'movimientos_info'
   ...over,
 })
 
-test('egreso se muestra con signo menos y text-danger', () => {
+test('egreso se muestra con signo menos y text-danger-foreground', () => {
   render(<MovimientosTable rows={[row({ id: 1, tipo_id: 2, tipo_movimiento: 'Egreso' })]} />)
   const el = screen.getByText('- $100.00')
-  expect(el).toHaveClass('text-danger')
+  expect(el).toHaveClass('text-danger-foreground')
 })
 
-test('ingreso se muestra con signo más y text-success', () => {
+test('ingreso se muestra con signo más y text-success-foreground', () => {
   render(<MovimientosTable rows={[row({ id: 2 })]} />)
-  expect(screen.getByText('+ $100.00')).toHaveClass('text-success')
+  expect(screen.getByText('+ $100.00')).toHaveClass('text-success-foreground')
 })

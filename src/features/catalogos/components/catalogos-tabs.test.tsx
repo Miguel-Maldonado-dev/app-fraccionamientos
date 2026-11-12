@@ -7,15 +7,18 @@ const { replace } = vi.hoisted(() => ({ replace: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }), usePathname: () => '/configuracion' }))
 
 describe('CatalogosTabs', () => {
-  it('muestra una pestaña por catálogo y cambia la URL al elegir otra', async () => {
+  it('muestra una pestaña por catálogo más las reglas de cobro y cambia la URL al elegir otra', async () => {
     render(<CatalogosTabs tab="cuotas">contenido</CatalogosTabs>)
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
       'Tipos de cuota',
       'Conceptos extra',
       'Descuentos',
       'Recargos',
+      'Reglas de cobro',
     ])
     await userEvent.click(screen.getByRole('tab', { name: 'Descuentos' }))
     expect(replace).toHaveBeenCalledWith('/configuracion?tab=descuentos')
+    await userEvent.click(screen.getByRole('tab', { name: 'Reglas de cobro' }))
+    expect(replace).toHaveBeenCalledWith('/configuracion?tab=reglas')
   })
 })

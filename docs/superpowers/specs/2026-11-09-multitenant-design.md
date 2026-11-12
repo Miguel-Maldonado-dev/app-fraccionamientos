@@ -1,14 +1,14 @@
 # Proyecto multi-tenant basado en Lago Amadeo: diseño
 
-Fecha: 2026-11-09 · Estado: pendiente de revisión
+Fecha: 2026-11-09 · Estado: aprobado para implementación (revisado contra el esquema real el 2026-11-09)
 
 ## Objetivo
 
-Crear un producto nuevo, en un repositorio y un proyecto de Supabase propios, para administrar **varios fraccionamientos** con la misma funcionalidad que hoy tiene Lago Amadeo. Un **super admin** crea y configura los fraccionamientos. Cada fraccionamiento tiene sus propios datos, usuarios, catálogos y marca, y ningún usuario puede ver ni modificar datos de otro fraccionamiento.
+Crear un producto nuevo, en un repositorio y un proyecto de Supabase propios, para administrar **varios fraccionamientos** con la misma funcionalidad que hoy tiene Lago Amadeo. Un **super admin** crea y configura los fraccionamientos. Cada fraccionamiento tiene sus propios datos, usuarios y catálogos, y ningún usuario puede ver ni modificar datos de otro fraccionamiento.
 
 Éxito:
 
-- El super admin da de alta un fraccionamiento con su marca y su primer Administrador.
+- El super admin da de alta un fraccionamiento con su nombre y su primer Administrador.
 - Ese Administrador opera la app completa (domicilios, residentes, cuotas, pagos, movimientos, reportes, usuarios y configuración) sin ver nada de otros fraccionamientos.
 - El aislamiento lo garantiza la base de datos (RLS) y lo demuestran pruebas automáticas.
 
@@ -21,9 +21,9 @@ El repositorio y el proyecto actuales de Lago Amadeo **no se modifican**.
 | Jerarquía | Super admin → fraccionamientos. No hay nivel de administradora. |
 | Tenant | El fraccionamiento. |
 | Membresía | Cada usuario pertenece a **un solo** fraccionamiento. Al iniciar sesión entra directo, sin selector y sin el fraccionamiento en la URL. |
-| Roles | `super_admin` en toda la plataforma. Por fraccionamiento: `administrador`, `tesorero`, `comite` y `vigilancia`. |
+| Roles | `super_admin` en toda la plataforma. Por fraccionamiento: `administrador`, `tesorero`, `comite` y `vigilancia`. Todos son personal del fraccionamiento; los residentes no tienen usuario. |
 | Aislamiento | Una sola base con `fraccionamiento_id` en las tablas de negocio y políticas RLS por fraccionamiento y rol. |
-| Cambios extra en la primera versión | Marca por fraccionamiento: nombre, logo y color principal. |
+| Identidad del fraccionamiento | Solo el **nombre**. Sin logo ni color propios: toda la app usa la paleta actual y el logo genérico del producto. |
 | Datos iniciales | El proyecto arranca vacío, salvo los catálogos globales y el usuario super admin. No se migran datos de Lago Amadeo. |
 | Repositorio | Copia limpia del código actual, sin historial de git. |
 
@@ -43,17 +43,16 @@ El repositorio y el proyecto actuales de Lago Amadeo **no se modifican**.
 
 ### Base de datos
 
-1. **Referencia del esquema.** `supabase db dump --schema-only` contra el proyecto actual. Es una operación de solo lectura y no copia datos. El resultado se guarda en `supabase/reference/lago-amadeo-schema.sql` como referencia, no como migración.
+1. **Referencia del esquema (hecho).** Extraída con el MCP de Supabase en modo solo lectura y guardada en `supabase/reference/lago-amadeo-schema.sql`, como referencia, no como migración.
 2. **Migraciones.** Esquema multi-tenant nuevo en `supabase/migrations/`, escrito y versionado en el repositorio, en este orden:
    1. Catálogos globales.
    2. Fraccionamientos y perfiles.
    3. Tablas de negocio.
    4. Vistas.
    5. Funciones.
-   6. Políticas RLS.
-   7. Storage.
-   8. Datos iniciales (`supabase/seed.sql`).
-3. **Desarrollo local.** Con `supabase start`. Las pruebas de RLS corren con `supabase test db`.
+   6. Políticas RLS y permisos.
+   7. Datos iniciales (`supabase/seed.sql`).
+3. **Desarrollo local.** Con `supabase start`, en los puertos 553xx (API 55321, base 55322, Studio 55323), para convivir con otro stack local. Las pruebas de RLS corren con `supabase test db`.
 4. **Nube.** El usuario crea el proyecto en el panel y lo enlaza con `supabase link`. `supabase db push` solo se ejecuta cuando el usuario lo indique.
 5. **Tipos.** `src/lib/supabase/database.types.ts` se regenera desde la base local (`supabase gen types typescript --local`).
 
@@ -62,10 +61,9 @@ El repositorio y el proyecto actuales de Lago Amadeo **no se modifican**.
 ### Tablas nuevas
 
 - **`fraccionamientos`:**
-  - `id bigint identity`, `nombre text not null`, `slug text not null unique`, `logo_path text`, `color_primario text not null default '#065F46'`, `activo boolean not null default true`, `created_at timestamptz`.
-  - `color_primario` lleva un CHECK de formato `^#[0-9A-Fa-f]{6}$`. El contraste mínimo de 4.5:1 contra blanco se valida en la app al guardar.
+  - `id bigint identity`, `nombre text not null`, `slug text not null unique`, `instalacion_id uuid unique` (opcional; id de la instalación de Access Core, ver "Integración futura"), `activo boolean not null default true`, `created_at timestamptz`.
 - **`perfiles`:**
-  - `id uuid` PK que referencia `auth.users` con `ON DELETE CASCADE`, más `fraccionamiento_id bigint` que referencia `fraccionamientos`, `rol rol_usuario not null`, `nombre text not null`, `activo boolean not null default true` y `created_at`.
+  - `id uuid` PK que referencia `auth.users` con `ON DELETE CASCADE`, más `fraccionamiento_id bigint` que referencia `fraccionamientos`, `rol rol_usuario not null`, `nombre text not null`, `email text not null` (copia del email de Auth, la usan `users_info` y `reporte_pagos_detalle`), `activo boolean not null default true` y `created_at`.
   - `rol_usuario` es un enum con `super_admin`, `administrador`, `tesorero`, `comite` y `vigilancia`.
   - Un CHECK obliga a que `fraccionamiento_id` esté vacío si y solo si `rol = 'super_admin'`.
   - Reemplaza a `users` y `user_roles` del esquema actual.
@@ -103,14 +101,21 @@ RLS se habilita en todas las tablas, sin políticas `USING true`.
 | Escribir domicilios, residentes y accesos | administrador |
 | Escribir cuotas, pagos y movimientos | administrador y tesorero |
 | Escribir catálogos del fraccionamiento | administrador |
-| Leer y escribir perfiles del fraccionamiento | administrador, y solo con roles distintos de `super_admin`. Cada usuario puede leer su propio perfil. |
+| Leer perfiles del fraccionamiento | Cualquier rol del fraccionamiento (los reportes muestran quién registró cada pago). |
+| Escribir perfiles del fraccionamiento | administrador, y solo con roles distintos de `super_admin`. Cada usuario puede leer su propio perfil aunque esté inactivo. |
 | `fraccionamientos` | Lectura del propio fraccionamiento para sus miembros. Lectura y escritura completas para el super admin. |
 | Comité y vigilancia | Solo lectura. Vigilancia, además, solo lee domicilios, residentes y accesos. |
 
 - **Columna `fraccionamiento_id` en inserciones:** su `DEFAULT` es `private.fraccionamiento_actual()`, y el `WITH CHECK` exige que el valor sea igual al fraccionamiento del usuario, salvo para el super admin.
 - **Vistas:** todas se crean con `security_invoker = true`.
 - **Funciones de negocio:** `generar_cuotas(p_anio, p_mes)` genera solo para el fraccionamiento del usuario y exige rol `administrador` o `tesorero`.
-- **Storage:** el bucket `logos` tiene lectura pública. La escritura queda restringida al super admin, en la ruta `logos/<fraccionamiento_id>/…`.
+- **Funciones de negocio, además:**
+  - `marcar_cuotas_vencidas()` la ejecuta `pg_cron` a diario (`0 6 * * *`) como `postgres`, sin usuario; procesa todos los fraccionamientos y no se expone a `authenticated`.
+  - El trigger `fn_pago_to_movimiento` copia `fraccionamiento_id` del pago al movimiento.
+  - `fn_actualizar_cuotas_concepto` y `fn_residente_principal` se conservan; ya filtran por domicilio.
+- **Permisos (GRANT):** la versión local del CLI ya no da permisos por defecto en `public`. Cada migración otorga explícitamente lo necesario a `authenticated` (y `service_role`); `anon` no recibe permisos sobre tablas, vistas ni funciones.
+- **Vistas que se migran:** solo las 11 que usa la app: `users_info`, `domicilios_info`, `cuotas_info`, `pagos_info`, `residentes_info`, `domicilio_concepto_info`, `movimientos_info`, `reporte_pagos_detalle`, `resumen_financiero_completo`, `accesos_telefono_info` y `accesos_tarjeta_info`.
+- **Recibos:** cada pago guarda un JSON pequeño en `pagos.recibo` y el PDF se genera al abrirlo (ver `2026-11-10-recibos-design.md`). No hay Storage.
 
 ### Alta de usuarios
 
@@ -149,10 +154,9 @@ Las datos de prueba son dos fraccionamientos, A y B, con un usuario de cada rol 
 - **Crear y editar fraccionamiento:**
   - Nombre*.
   - Slug*: se genera desde el nombre y se puede editar; minúsculas y guiones.
-  - Logo: PNG, JPG o SVG, de 1 MB como máximo.
-  - Color principal*: un selector, más la validación de contraste.
   - Activo.
 - **Usuarios de un fraccionamiento:** el super admin crea y desactiva usuarios con cualquier rol del fraccionamiento, empezando por su primer Administrador.
+- **Catálogos de un fraccionamiento:** el super admin captura los catálogos iniciales del fraccionamiento (tipos de cuota, conceptos extra, descuentos y recargos) reutilizando las pestañas y diálogos de Configuración. El fraccionamiento nace con los catálogos vacíos; no hay valores precargados. Después, el Administrador los edita desde Configuración.
 - **Diseño:** usa los componentes y estilos actuales de la app, con su propio menú: Fraccionamientos.
 
 ### Pantallas existentes
@@ -162,40 +166,40 @@ Las datos de prueba son dos fraccionamientos, A y B, con un usuario de cada rol 
 - **Errores:** las acciones siguen validando el rol en el servidor con `runAction`, ahora con los roles del enum. Esto sirve como defensa en profundidad y para dar mensajes claros.
 - **Usuarios:** el Administrador ve y crea solo usuarios de su fraccionamiento, con los roles administrador, tesorero, comité y vigilancia.
 - **Configuración** (catálogos): queda por fraccionamiento. Los nombres repetidos ahora también los rechaza la restricción única de la base.
-- **Exportaciones ZKTeco y Eldesgate:**
-  - Las rutas exigen sesión y un rol de lectura de accesos.
-  - Exportan solo el fraccionamiento del usuario.
-  - Dejan de depender de edge functions sin verificación de JWT: la lógica pasa a la ruta de la API, con el cliente de sesión.
+- **Exportaciones ZKTeco y Eldesgate:** desactivadas (decisión del 2026-11-10). Eran parte de la aplicación anterior; la gestión de accesos se hará más adelante con la API de Access Core (ver "Integración futura"). Se eliminan las rutas `/api/exports/*` y sus botones; los reportes de accesos se quedan como tablas de consulta.
 
-### Marca por fraccionamiento
+### Nombre del fraccionamiento
 
-- **Carga:** el layout de `(app)` toma nombre, logo y color de `getTenantContext()`.
+- **Carga:** el layout de `(app)` toma el nombre de `getTenantContext()`.
 - **Dónde se aplica:**
-  - Logo y nombre en el menú lateral y la barra superior, con el logo genérico del producto si no hay logo.
+  - Nombre en el menú lateral y la barra superior, junto al logo genérico del producto.
   - `<title>` con el formato `<nombre del fraccionamiento> · <producto>`.
-  - `--primary`, `--primary-hover` y `--primary-light` en un `style` del `<html>`, derivadas del color principal.
-  - Recibos y PDF de movimientos con nombre y logo del fraccionamiento.
+  - Recibos y PDF de movimientos con el nombre del fraccionamiento.
+- **Colores:** sin cambios; toda la app usa la paleta actual.
 - **Textos fijos:** los textos "Lago Amadeo" del código se reemplazan por el nombre del fraccionamiento. Las descripciones de página pasan a ser genéricas, por ejemplo "Gestiona los domicilios del fraccionamiento."
 
 ### Pruebas de la app
 
-- Las pruebas actuales se adaptan a los roles nuevos y a la marca dinámica.
+- Las pruebas actuales se adaptan a los roles nuevos y al nombre dinámico.
 - Pruebas nuevas:
   - `getTenantContext()` y las redirecciones por rol y estado.
-  - La consola del super admin: validación de slug, color y contraste, y logo.
+  - La consola del super admin: validación de nombre y slug.
   - La alta de usuarios, incluyendo la compensación en Auth y el rechazo de `super_admin` por parte de un Administrador.
-  - La marca en el layout y en los PDF.
+  - El nombre del fraccionamiento en el layout y en los PDF.
 
 ## Fases de implementación
 
 El plan dividirá el trabajo en fases. Cada fase deja software funcionando y probado:
 
-0. **Arranque:** carpeta nueva, copia limpia, `supabase init`, referencia del esquema y app compilando contra la base local.
-1. **Esquema multi-tenant:** migraciones, RLS, funciones, seed y pgTAP en verde.
-2. **App con tenant:** `getTenantContext`, proxy, roles nuevos, alta de usuarios y pantallas actuales funcionando sobre el esquema nuevo.
+0. **Arranque (hecho):** carpeta nueva, copia limpia, `supabase init`, referencia del esquema y app corriendo contra la base local con el esquema de referencia.
+1. **Esquema multi-tenant:** migraciones, RLS, permisos, funciones, cron, seed y pgTAP en verde.
+2. **App con tenant:** `getTenantContext`, proxy, roles nuevos, alta de usuarios, nombre del fraccionamiento en la interfaz y pantallas actuales funcionando sobre el esquema nuevo.
 3. **Consola del super admin.**
-4. **Marca por fraccionamiento.**
-5. **Exportaciones y verificación final:** build y guía para enlazar el proyecto en la nube.
+4. **Recibos y nube:** recibos PDF sin edge functions, build y guía para enlazar el proyecto en la nube. (Las exportaciones quedaron desactivadas en la fase 3.)
+
+## Integración futura: control de acceso (Access Core)
+
+Resuelta en un proyecto aparte: ver [`2026-11-11-medios-acceso-access-core-design.md`](2026-11-11-medios-acceso-access-core-design.md) (medios de acceso, cola de sincronización y pantalla `/accesos`) y la nota de mapeo en `docs/integraciones/access-core-mapeo.md`. La documentación OpenAPI sigue en `docs/integraciones/access-core-openapi.json`.
 
 ## Fuera de alcance
 

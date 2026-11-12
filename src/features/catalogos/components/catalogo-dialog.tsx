@@ -7,6 +7,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { toast } from 'sonner'
 import { FormDialog } from '@/components/form-dialog'
 import { Button } from '@/components/ui/button'
+import type { ActionResult } from '@/lib/action-result'
 import { guardarCatalogo } from '../actions'
 import { CATALOGOS, type CatalogoSimple, type ElementoCatalogo } from '../catalogos'
 import { AVISO_NOMBRE } from '../messages'
@@ -14,6 +15,13 @@ import { catalogoSchema, type CatalogoInput } from '../schemas'
 import { CamposCatalogo } from './campos-catalogo'
 
 const FORM_ID = 'catalogo-form'
+
+/** Acción que guarda un elemento; por defecto la de Configuración, en la consola la del fraccionamiento. */
+export type GuardarCatalogo = (
+  catalogo: CatalogoSimple,
+  id: number | null,
+  input: CatalogoInput,
+) => Promise<ActionResult>
 
 const valoresDe = (item?: ElementoCatalogo): CatalogoInput => ({
   nombre: item?.nombre ?? '',
@@ -24,10 +32,12 @@ export function CatalogoDialog({
   catalogo,
   item,
   trigger,
+  guardar = guardarCatalogo,
 }: {
   catalogo: CatalogoSimple
   item?: ElementoCatalogo
   trigger: ReactNode
+  guardar?: GuardarCatalogo
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -43,7 +53,7 @@ export function CatalogoDialog({
   const avisos = item && nombre.trim() !== item.nombre ? [AVISO_NOMBRE] : []
 
   async function onSubmit(values: { nombre: string; importe: number }) {
-    const result = await guardarCatalogo(catalogo, item?.id ?? null, values)
+    const result = await guardar(catalogo, item?.id ?? null, values)
     if (result.ok) {
       toast.success(config.guardado)
       setOpen(false)

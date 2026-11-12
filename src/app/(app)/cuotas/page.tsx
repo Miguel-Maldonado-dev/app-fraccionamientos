@@ -2,8 +2,9 @@ import { PageHeader } from '@/components/page-header'
 import { CuotasView } from '@/features/cuotas/components/cuotas-view'
 import { GenerarCuotasDialog } from '@/features/cuotas/components/generar-cuotas-dialog'
 import { listAnios, listCuotasPeriodo, listEstatus, listMeses } from '@/features/cuotas/queries'
+import { conGracia } from '@/features/cuotas/estatus'
 import { periodoSchema } from '@/features/cuotas/schemas'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { hasRole } from '@/lib/auth/require-role'
 import { ROLES_GESTION } from '@/lib/constants'
 import { currentPeriod } from '@/lib/dates'
@@ -34,7 +35,7 @@ export default async function CuotasPage({
     <div className="space-y-6">
       <PageHeader
         title="Cuotas"
-        description="Gestiona las cuotas de mantenimiento del fraccionamiento Lago Amadeo."
+        description="Gestiona las cuotas de mantenimiento del fraccionamiento."
         breadcrumbs={[{ label: 'Cuotas' }]}
         actions={hasRole(user, ROLES_GESTION) && <GenerarCuotasDialog anios={anios} meses={meses} />}
       />
@@ -45,7 +46,7 @@ export default async function CuotasPage({
         meses={meses}
         anio={anio}
         mes={mes}
-        estatusOptions={estatusOptions}
+        estatusOptions={conGracia(estatusOptions)}
       />
     </div>
   )

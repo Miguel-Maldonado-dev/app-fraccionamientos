@@ -15,7 +15,7 @@ export default async function DomiciliosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Domicilios"
-        description="Gestiona los domicilios del fraccionamiento Lago Amadeo."
+        description="Gestiona los domicilios del fraccionamiento."
         breadcrumbs={[{ label: 'Domicilios' }]}
         actions={<AddDomicilioDialog conceptos={conceptos} />}
       />

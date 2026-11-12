@@ -30,7 +30,7 @@ const columns: Column<Row>[] = [
         <span
           role="img"
           aria-label="Residente principal"
-          className="flex size-6 items-center justify-center rounded-full bg-success-light text-success"
+          className="flex size-6 items-center justify-center rounded-full bg-success-light text-success-foreground"
         >
           <Check className="size-4" />
         </span>

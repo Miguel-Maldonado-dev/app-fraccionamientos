@@ -1,6 +1,6 @@
 'use client'
 
-import { Car, Footprints, UserRound } from 'lucide-react'
+import { UserRound } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -13,15 +13,7 @@ export function ReportesTabs({ tab, children }: { tab: string; children: ReactNo
       <TabsList>
         <TabsTrigger value="usuario">
           <UserRound />
-          Pagos por Usuario
-        </TabsTrigger>
-        <TabsTrigger value="vehicular">
-          <Car />
-          Acceso Vehicular
-        </TabsTrigger>
-        <TabsTrigger value="peatonal">
-          <Footprints />
-          Acceso Peatonal
+          Pagos por usuario
         </TabsTrigger>
       </TabsList>
       {children}

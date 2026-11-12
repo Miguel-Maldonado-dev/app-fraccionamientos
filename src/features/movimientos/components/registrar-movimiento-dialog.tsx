@@ -101,7 +101,7 @@ export function RegistrarMovimientoDialog({
       >
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="tipoId" className="text-xs font-medium">
-            Tipo de Movimiento <span className="text-danger">*</span>
+            Tipo de Movimiento <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
@@ -121,32 +121,32 @@ export function RegistrarMovimientoDialog({
               </Select>
             )}
           />
-          {errors.tipoId && <p className="text-xs text-danger">Selecciona un tipo de movimiento</p>}
+          {errors.tipoId && <p className="text-xs text-danger-foreground">Selecciona un tipo de movimiento</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="importe" className="text-xs font-medium">
-            Importe <span className="text-danger">*</span>
+            Importe <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="importe" inputMode="decimal" {...register('importe')} />
-          {errors.importe && <p className="text-xs text-danger">{errors.importe.message}</p>}
+          {errors.importe && <p className="text-xs text-danger-foreground">{errors.importe.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5 md:col-span-2">
           <Label htmlFor="descripcion" className="text-xs font-medium">
-            Descripción <span className="text-danger">*</span>
+            Descripción <span className="text-danger-foreground">*</span>
           </Label>
           <Textarea id="descripcion" {...register('descripcion')} />
-          {errors.descripcion && <p className="text-xs text-danger">{errors.descripcion.message}</p>}
+          {errors.descripcion && <p className="text-xs text-danger-foreground">{errors.descripcion.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="fechaMovimiento" className="text-xs font-medium">
-            Fecha de Movimiento <span className="text-danger">*</span>
+            Fecha de Movimiento <span className="text-danger-foreground">*</span>
           </Label>
           <Input id="fechaMovimiento" type="date" max={todayISO()} {...register('fechaMovimiento')} />
-          {errors.fechaMovimiento && <p className="text-xs text-danger">{errors.fechaMovimiento.message}</p>}
+          {errors.fechaMovimiento && <p className="text-xs text-danger-foreground">{errors.fechaMovimiento.message}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="metodoPagoId" className="text-xs font-medium">
-            Método de Pago <span className="text-danger">*</span>
+            Método de Pago <span className="text-danger-foreground">*</span>
           </Label>
           <Controller
             control={control}
@@ -166,7 +166,7 @@ export function RegistrarMovimientoDialog({
               </Select>
             )}
           />
-          {errors.metodoPagoId && <p className="text-xs text-danger">Selecciona un método de pago</p>}
+          {errors.metodoPagoId && <p className="text-xs text-danger-foreground">Selecciona un método de pago</p>}
         </div>
       </form>
     </FormDialog>

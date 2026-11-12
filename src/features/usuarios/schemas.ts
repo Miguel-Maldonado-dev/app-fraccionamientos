@@ -1,19 +1,21 @@
 import { z } from 'zod'
 import { toTitleCase } from '@/lib/text'
-import { positiveInt } from '@/lib/zod'
+import { ROLES_FRACCIONAMIENTO } from '@/lib/constants'
+
+const rol = z.enum(ROLES_FRACCIONAMIENTO, { error: 'Selecciona un rol' })
 
 const userName = z.string().trim().min(1, 'El nombre es obligatorio').transform(toTitleCase)
 
 export const nuevoUsuarioSchema = z.object({
   userName,
-  email: z.email('Email inválido'),
+  email: z.string().trim().toLowerCase().pipe(z.email('Email inválido')),
   password: z.string().min(6, 'Mínimo 6 caracteres'),
-  roleId: positiveInt,
+  rol,
 })
 
 export const editarUsuarioSchema = z.object({
   userName,
-  roleId: positiveInt,
+  rol,
 })
 
 export type NuevoUsuarioInput = z.input<typeof nuevoUsuarioSchema>

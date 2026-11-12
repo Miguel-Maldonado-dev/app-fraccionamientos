@@ -6,26 +6,28 @@ import { MovimientosView } from '@/features/movimientos/components/movimientos-v
 import { RegistrarMovimientoDialog } from '@/features/movimientos/components/registrar-movimiento-dialog'
 import { listMovimientos, listTiposMovimiento } from '@/features/movimientos/queries'
 import { listMetodosPago } from '@/features/pagos/queries'
-import { getCurrentUser } from '@/lib/auth/current-user'
+import { getTenantContext, toCurrentUser } from '@/lib/auth/tenant-context'
 import { hasRole } from '@/lib/auth/require-role'
 import { ROLES_GESTION } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function MovimientosPage() {
   const supabase = await createClient()
-  const [user, resumen, rows, tipos, metodos] = await Promise.all([
-    getCurrentUser(),
+  const [ctx, resumen, rows, tipos, metodos] = await Promise.all([
+    getTenantContext(),
     getResumenFinanciero(supabase),
     listMovimientos(supabase),
     listTiposMovimiento(supabase),
     listMetodosPago(supabase),
   ])
 
+  const user = ctx ? toCurrentUser(ctx) : null
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Movimientos Financieros"
-        description="Consulta y administra todos los movimientos financieros del fraccionamiento Lago Amadeo."
+        description="Consulta y administra todos los movimientos financieros del fraccionamiento."
         breadcrumbs={[{ label: 'Movimientos' }]}
         actions={
           hasRole(user, ROLES_GESTION) ? (
@@ -42,7 +44,11 @@ export default async function MovimientosPage() {
           ) : undefined
         }
       />
-      <MovimientosView rows={rows} saldo={resumen?.saldo_actual ?? null} />
+      <MovimientosView
+        rows={rows}
+        saldo={resumen?.saldo_actual ?? null}
+        fraccionamientoNombre={ctx?.fraccionamiento?.nombre ?? ''}
+      />
     </div>
   )
 }

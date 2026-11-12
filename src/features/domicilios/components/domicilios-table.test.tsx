@@ -15,8 +15,7 @@ const row = (id: number, direccion: string, estatus: string): DomicilioInfo => (
   residente_principal: 'Ana',
   id_concepto: null,
   tipo_cuota: null,
-  acceso_telefono: null,
-  acceso_tarjeta: null,
+  medios: null,
   estatus,
 })
 const rows = [row(1, 'LAGO UNO', 'Al corriente'), row(2, 'LAGO DOS', 'Moroso'), row(3, 'BOSQUE 3', 'Al corriente')]
@@ -67,5 +66,30 @@ describe('DomiciliosTable', () => {
     render(<DomiciliosTable rows={rows} />)
     await userEvent.click(screen.getAllByRole('button', { name: /Acciones de/ })[0])
     expect(push).not.toHaveBeenCalled()
+  })
+
+  test('sin props muestra el estatus y enlaza a /domicilios/<id>', () => {
+    render(<DomiciliosTable rows={rows} />)
+    expect(screen.getByRole('columnheader', { name: 'Estatus' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'LAGO UNO' })).toHaveAttribute('href', '/domicilios/1')
+  })
+
+  test('mostrarEstatus=false oculta la columna y hrefBase cambia los enlaces', () => {
+    render(
+      <DomiciliosTable rows={rows} mostrarEstatus={false} hrefBase="/admin/fraccionamientos/5/domicilios" />,
+    )
+    expect(screen.queryByRole('columnheader', { name: 'Estatus' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Moroso')).not.toBeInTheDocument()
+    expect(screen.queryByText('Al corriente')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'LAGO UNO' })).toHaveAttribute(
+      'href',
+      '/admin/fraccionamientos/5/domicilios/1',
+    )
+  })
+
+  test('mostrarTipoCuota agrega la columna Tipo de cuota con el nombre', () => {
+    render(<DomiciliosTable rows={[{ ...rows[0], tipo_cuota: 'Completa' }]} mostrarEstatus={false} mostrarTipoCuota />)
+    expect(screen.getByRole('columnheader', { name: 'Tipo de cuota' })).toBeInTheDocument()
+    expect(screen.getByText('Completa')).toBeInTheDocument()
   })
 })

@@ -5,6 +5,7 @@ import { DataTable, type Column } from '@/components/data-table'
 import { Money } from '@/components/money'
 import { StatusBadge } from '@/components/status-badge'
 import type { CuotaInfo } from '../queries'
+import { estatusVisible } from '../estatus'
 
 const columns: Column<CuotaInfo>[] = [
   {
@@ -36,13 +37,13 @@ const columns: Column<CuotaInfo>[] = [
   {
     key: 'estatus',
     header: 'Estatus',
-    cell: (r) => <StatusBadge status={r.estatus} />,
-    sortValue: (r) => r.estatus ?? '',
+    cell: (r) => <StatusBadge status={estatusVisible(r)} />,
+    sortValue: (r) => estatusVisible(r) ?? '',
   },
 ]
 
 export function CuotasTable({ rows, estatus }: { rows: CuotaInfo[]; estatus: string | null }) {
-  const filtered = useMemo(() => (estatus ? rows.filter((r) => r.estatus === estatus) : rows), [rows, estatus])
+  const filtered = useMemo(() => (estatus ? rows.filter((r) => estatusVisible(r) === estatus) : rows), [rows, estatus])
   return (
     <DataTable
       columns={columns}

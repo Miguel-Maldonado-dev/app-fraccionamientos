@@ -1,7 +1,33 @@
 // @vitest-environment node
 import ExcelJS from 'exceljs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { crearExcel, crearPdf } from './generar'
+
+const autoTableSpy = vi.hoisted(() => vi.fn())
+const textColorSpy = vi.hoisted(() => vi.fn())
+vi.mock('jspdf', async () => {
+  const actual = await vi.importActual<typeof import('jspdf')>('jspdf')
+  class JsPdfEspia extends actual.jsPDF {
+    constructor(...args: ConstructorParameters<typeof actual.jsPDF>) {
+      super(...args)
+      const original = this.setTextColor.bind(this)
+      this.setTextColor = ((...c: unknown[]) => {
+        textColorSpy(...c)
+        return (original as (...a: unknown[]) => unknown)(...c)
+      }) as typeof this.setTextColor
+    }
+  }
+  return { ...actual, jsPDF: JsPdfEspia }
+})
+vi.mock('jspdf-autotable', async () => {
+  const actual = await vi.importActual<{ default: (...a: unknown[]) => void }>('jspdf-autotable')
+  return {
+    default: (...args: unknown[]) => {
+      autoTableSpy(...args)
+      return actual.default(...args)
+    },
+  }
+})
 
 const filas = [
   { tipo: 'Ingreso', descripcion: 'Cuota marzo', importe: 250, fecha: '2026-03-05' },
@@ -10,6 +36,7 @@ const filas = [
 const meta = {
   filtros: 'Año: 2026 · Mes: Marzo · Tipo: Todos',
   generado: '2026-11-05',
+  fraccionamientoNombre: 'Fracc Demo',
   totales: { ingresos: 250, egresos: 100.5 },
 }
 
@@ -32,8 +59,17 @@ describe('crearPdf', () => {
   it('genera un PDF con las filas, los filtros y el consolidado al final', () => {
     const pdf = new TextDecoder('latin1').decode(crearPdf(filas, meta))
     expect(pdf.startsWith('%PDF')).toBe(true)
-    for (const texto of ['Movimientos financieros', 'Mes: Marzo', 'Jardinería', 'Total de ingresos', 'Total de egresos']) {
+    for (const texto of ['Movimientos financieros', 'Fracc Demo', 'Mes: Marzo', 'Jardinería', 'Total de ingresos', 'Total de egresos']) {
       expect(pdf).toContain(texto)
     }
+  })
+
+  it('usa la paleta WEADMI: título navy y encabezados de tabla en el primario', () => {
+    autoTableSpy.mockClear()
+    textColorSpy.mockClear()
+    crearPdf(filas, meta)
+    expect(textColorSpy.mock.calls[0]).toEqual([7, 31, 73])
+    const opciones = autoTableSpy.mock.calls[0][1] as { headStyles: { fillColor: number[] } }
+    expect(opciones.headStyles.fillColor).toEqual([8, 107, 184])
   })
 })
