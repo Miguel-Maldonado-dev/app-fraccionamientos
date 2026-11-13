@@ -104,6 +104,11 @@ describe('llamar', () => {
     expect(await llamar('GET', '/x')).toEqual({ a: 1 })
   })
 
+  it('completo: devuelve el JSON sin desenvolver data', async () => {
+    fetchMock.mockResolvedValue(respuesta({ data: [1], page: 1, page_size: 50, total: 1 }))
+    expect(await llamar('GET', '/x', { completo: true })).toEqual({ data: [1], page: 1, page_size: 50, total: 1 })
+  })
+
   it('204 devuelve undefined', async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
     expect(await llamar('DELETE', '/x')).toBeUndefined()

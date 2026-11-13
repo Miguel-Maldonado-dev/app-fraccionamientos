@@ -1,9 +1,10 @@
-import { Banknote, Plus, Receipt } from 'lucide-react'
+import { Banknote, Calendar, Coins, FileText, Plus, Receipt } from 'lucide-react'
+import { CARD_TABLE_HEAD_ROW, CardTableHead } from '@/components/card-table-head'
 import { EmptyState } from '@/components/empty-state'
 import { Money } from '@/components/money'
 import { SectionCard } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate } from '@/lib/dates'
 import type { Tables } from '@/lib/supabase/types'
 import type { PagoInfo } from '../queries'
@@ -29,6 +30,8 @@ export function PagosExtraSection({
     <SectionCard
       title="Pagos extra"
       icon={Banknote}
+      flush
+      description="Cobros adicionales del domicilio"
       action={
         puedeGestionar && (
           <RegistrarPagoExtraDialog
@@ -47,38 +50,44 @@ export function PagosExtraSection({
       }
     >
       {pagos.length === 0 ? (
-        <EmptyState
-          icon={Receipt}
-          title="Sin pagos extra"
-          description="No hay pagos extra registrados para este domicilio."
-        />
+        <div className="px-5 pb-5">
+          <EmptyState
+            icon={Receipt}
+            title="Sin pagos extra"
+            description="No hay pagos extra registrados para este domicilio."
+          />
+        </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted hover:bg-muted">
-              <TableHead>Concepto</TableHead>
-              <TableHead className="text-right">Importe</TableHead>
-              <TableHead>Fecha de pago</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagos.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.concepto}</TableCell>
-                <TableCell className="text-right">
-                  <Money value={p.importe} />
-                </TableCell>
-                <TableCell>{formatDate(p.fecha_pago)}</TableCell>
-                <TableCell>
-                  <div className="flex justify-end">
-                    <ReciboButton pagoId={p.id!} />
-                  </div>
-                </TableCell>
+        <div className="px-5 pb-5">
+          <Table>
+            <TableHeader className="[&_tr]:border-b-0">
+              <TableRow className={CARD_TABLE_HEAD_ROW}>
+                <CardTableHead icon={FileText}>Concepto</CardTableHead>
+                <CardTableHead icon={Coins} className="text-right">
+                  Importe
+                </CardTableHead>
+                <CardTableHead icon={Calendar}>Fecha de pago</CardTableHead>
+                <CardTableHead className="text-right">Acciones</CardTableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {pagos.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>{p.concepto}</TableCell>
+                  <TableCell className="text-right font-semibold">
+                    <Money value={p.importe} />
+                  </TableCell>
+                  <TableCell>{formatDate(p.fecha_pago)}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <ReciboButton pagoId={p.id!} />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </SectionCard>
   )

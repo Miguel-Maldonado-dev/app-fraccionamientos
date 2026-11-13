@@ -52,6 +52,94 @@ export type Database = {
         }
         Relationships: []
       }
+      aperturas_remotas: {
+        Row: {
+          boton_id: number | null
+          created_at: string
+          detalle: string | null
+          domicilio_id: number
+          fraccionamiento_id: number
+          id: number
+          resultado: string
+          user_id: string
+        }
+        Insert: {
+          boton_id?: number | null
+          created_at?: string
+          detalle?: string | null
+          domicilio_id: number
+          fraccionamiento_id: number
+          id?: number
+          resultado: string
+          user_id: string
+        }
+        Update: {
+          boton_id?: number | null
+          created_at?: string
+          detalle?: string | null
+          domicilio_id?: number
+          fraccionamiento_id?: number
+          id?: number
+          resultado?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aperturas_remotas_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_botones: {
+        Row: {
+          ancho_completo: boolean
+          created_at: string
+          estilo: string
+          fraccionamiento_id: number
+          icono: string
+          id: number
+          nombre: string
+          orden: number
+          salida_id: string | null
+          salida_nombre: string | null
+        }
+        Insert: {
+          ancho_completo?: boolean
+          created_at?: string
+          estilo?: string
+          fraccionamiento_id: number
+          icono?: string
+          id?: number
+          nombre: string
+          orden: number
+          salida_id?: string | null
+          salida_nombre?: string | null
+        }
+        Update: {
+          ancho_completo?: boolean
+          created_at?: string
+          estilo?: string
+          fraccionamiento_id?: number
+          icono?: string
+          id?: number
+          nombre?: string
+          orden?: number
+          salida_id?: string | null
+          salida_nombre?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_botones_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       concepto_pago_acceso: {
         Row: {
           concepto_pago_id: number
@@ -254,6 +342,27 @@ export type Database = {
           },
         ]
       }
+      cuentas_residente: {
+        Row: {
+          activo: boolean
+          created_at: string
+          telefono: string
+          user_id: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          telefono: string
+          user_id: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          telefono?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cuotas: {
         Row: {
           anio: number
@@ -365,6 +474,35 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispositivos_residente: {
+        Row: {
+          device_id: string
+          ligado_en: string
+          nombre: string | null
+          user_id: string
+        }
+        Insert: {
+          device_id: string
+          ligado_en?: string
+          nombre?: string | null
+          user_id: string
+        }
+        Update: {
+          device_id?: string
+          ligado_en?: string
+          nombre?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispositivos_residente_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "cuentas_residente"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -564,6 +702,7 @@ export type Database = {
           id: number
           instalacion_id: string | null
           instalacion_nombre: string | null
+          max_residentes_app: number
           nombre: string
           slug: string
         }
@@ -573,6 +712,7 @@ export type Database = {
           id?: number
           instalacion_id?: string | null
           instalacion_nombre?: string | null
+          max_residentes_app?: number
           nombre: string
           slug: string
         }
@@ -582,6 +722,7 @@ export type Database = {
           id?: number
           instalacion_id?: string | null
           instalacion_nombre?: string | null
+          max_residentes_app?: number
           nombre?: string
           slug?: string
         }
@@ -973,6 +1114,7 @@ export type Database = {
           id: number
           nombre: string
           telefono: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -982,6 +1124,7 @@ export type Database = {
           id?: number
           nombre: string
           telefono?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -991,6 +1134,7 @@ export type Database = {
           id?: number
           nombre?: string
           telefono?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1006,6 +1150,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "residentes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "cuentas_residente"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1142,6 +1293,7 @@ export type Database = {
           domicilio_id: number
           fraccionamiento_id: number
           id: number
+          residente_id: number | null
           telefono: string
         }
         Insert: {
@@ -1149,6 +1301,7 @@ export type Database = {
           domicilio_id: number
           fraccionamiento_id?: number
           id?: number
+          residente_id?: number | null
           telefono: string
         }
         Update: {
@@ -1156,6 +1309,7 @@ export type Database = {
           domicilio_id?: number
           fraccionamiento_id?: number
           id?: number
+          residente_id?: number | null
           telefono?: string
         }
         Relationships: [
@@ -1172,6 +1326,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fraccionamientos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "telefonos_acceso_residente_id_fkey"
+            columns: ["residente_id", "fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "residentes"
+            referencedColumns: ["id", "fraccionamiento_id"]
           },
         ]
       }
@@ -1480,6 +1641,7 @@ export type Database = {
           forzado_por_nombre: string
         }[]
       }
+      estado_app_domicilio: { Args: { p_domicilio_id: number }; Returns: Json }
       forzar_acceso: {
         Args: { p_domicilio_id: number; p_valor: string }
         Returns: undefined
@@ -1500,6 +1662,14 @@ export type Database = {
       procesar_reglas_cobro: { Args: never; Returns: undefined }
       recalcular_permisos_acceso: {
         Args: { p_fraccionamiento_id?: number }
+        Returns: number
+      }
+      reordenar_app_botones: {
+        Args: { p_fraccionamiento_id: number; p_ids: number[] }
+        Returns: undefined
+      }
+      residentes_con_cuenta: {
+        Args: { p_domicilio_id: number }
         Returns: number
       }
     }

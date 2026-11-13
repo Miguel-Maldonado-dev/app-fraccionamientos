@@ -1,9 +1,11 @@
-import { BadgePercent, Banknote, Pencil, Plus, TriangleAlert, type LucideIcon } from 'lucide-react'
+import { BadgePercent, Banknote, Coins, Pencil, Plus, Tag, TriangleAlert, type LucideIcon } from 'lucide-react'
+import { CARD_TABLE_HEAD_ROW, CardTableHead } from '@/components/card-table-head'
 import { EmptyState } from '@/components/empty-state'
+import { IconButton } from '@/components/icon-button'
 import { Money } from '@/components/money'
 import { SectionCard } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import { CATALOGOS, type CatalogoSimple, type ElementoCatalogo } from '../catalogos'
 import { CatalogoDialog, type GuardarCatalogo } from './catalogo-dialog'
 
@@ -29,6 +31,7 @@ export function CatalogoSection({
       title={config.titulo}
       description={config.descripcion}
       icon={Icono}
+      flush
       action={
         <CatalogoDialog
           catalogo={catalogo}
@@ -43,41 +46,45 @@ export function CatalogoSection({
       }
     >
       {rows.length === 0 ? (
-        <EmptyState icon={Icono} title="Sin elementos" description="Agrega el primero con el botón Agregar." />
+        <div className="px-5 pb-5">
+          <EmptyState icon={Icono} title="Sin elementos" description="Agrega el primero con el botón Agregar." />
+        </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted hover:bg-muted">
-              <TableHead>Nombre</TableHead>
-              <TableHead className="text-right">{config.etiquetaMonto}</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">{r.nombre}</TableCell>
-                <TableCell className="text-right">
-                  <Money value={r.importe} />
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end">
-                    <CatalogoDialog
-                      catalogo={catalogo}
-                      item={r}
-                      guardar={guardar}
-                      trigger={
-                        <Button variant="secondary" size="icon-sm" aria-label={`Editar ${r.nombre}`}>
-                          <Pencil />
-                        </Button>
-                      }
-                    />
-                  </div>
-                </TableCell>
+        <div className="px-5 pb-5">
+          <Table>
+            <TableHeader className="[&_tr]:border-b-0">
+              <TableRow className={CARD_TABLE_HEAD_ROW}>
+                <CardTableHead icon={Tag}>Nombre</CardTableHead>
+                <CardTableHead icon={Coins} className="text-right">
+                  {config.etiquetaMonto}
+                </CardTableHead>
+                <CardTableHead className="text-right">Acciones</CardTableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.nombre}</TableCell>
+                  <TableCell className="text-right">
+                    <Money value={r.importe} />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <CatalogoDialog
+                        catalogo={catalogo}
+                        item={r}
+                        guardar={guardar}
+                        trigger={
+                          <IconButton icon={Pencil} label={`Editar ${r.nombre}`} />
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </SectionCard>
   )

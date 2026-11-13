@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { cargarLogo } from '@/lib/logo-pdf'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -44,6 +45,7 @@ export function ExportarMovimientos({
     setGenerando(true)
     try {
       const { crearExcel, crearPdf } = await import('../export/generar')
+      const logo = formato === 'pdf' ? await cargarLogo() : null
       const filas = filasExport(rows)
       const hoy = todayISO()
       const contenido =
@@ -54,7 +56,7 @@ export function ExportarMovimientos({
               generado: hoy,
               fraccionamientoNombre,
               totales: resumenExport(rows),
-            })
+            }, logo)
       descargar(new Blob([contenido], { type: MIME[formato] }), nombreArchivo(formato, hoy))
     } catch {
       toast.error('No se pudo generar el archivo. Inténtalo de nuevo.')

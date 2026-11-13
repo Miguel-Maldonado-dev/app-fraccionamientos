@@ -46,3 +46,9 @@ export const tipoCuotaSchema = catalogoSchema.extend({
 export type CatalogoInput = z.input<typeof catalogoSchema>
 export type TipoCuotaInput = z.input<typeof tipoCuotaSchema>
 export type TipoCuotaOutput = z.output<typeof tipoCuotaSchema>
+
+export const maxResidentesAppSchema = z
+  .number({ error: 'Debe ser un número entre 1 y 20' })
+  .int('Debe ser un número entre 1 y 20')
+  .min(1, 'Debe ser un número entre 1 y 20')
+  .max(20, 'Debe ser un número entre 1 y 20')

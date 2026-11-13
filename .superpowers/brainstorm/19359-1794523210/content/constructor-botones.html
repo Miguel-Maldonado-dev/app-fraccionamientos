@@ -1,0 +1,63 @@
+<h2>Constructor de botones de la app — dos opciones</h2>
+<p class="subtitle">Consola › Fraccionamiento › pestaña "App de residentes". Haz clic en la que prefieras.</p>
+<style>
+.wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.panel{flex:1;min-width:260px;border:1px solid #ccc;border-radius:10px;padding:12px;font-size:13px}
+.row{display:flex;gap:8px;align-items:center;border:1px solid #ddd;border-radius:8px;padding:6px 8px;margin:6px 0;background:#fafafa}
+.grip{cursor:grab;color:#999}
+.phone{width:220px;border:10px solid #222;border-radius:28px;padding:12px;background:#f5f7fb}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.btn{background:#1e3a8a;color:#fff;border-radius:12px;padding:14px 6px;text-align:center;font-size:12px}
+.btn.sel{outline:3px solid #f59e0b}
+.empty{border:2px dashed #bbb;border-radius:12px;padding:14px 6px;text-align:center;color:#999;font-size:12px}
+.pin{background:#fff;border-radius:10px;padding:8px;font-size:12px;display:flex;justify-content:space-between}
+.ok{color:#15803d;font-weight:600}
+.tabs{display:flex;justify-content:space-around;font-size:10px;color:#666;margin-top:10px;border-top:1px solid #ddd;padding-top:6px}
+.lbl{font-weight:600;margin:4px 0}
+input,select{font-size:12px;padding:3px;width:100%}
+</style>
+<div class="options">
+<div class="option" data-choice="a" onclick="toggleSelect(this)">
+<div class="letter">A</div><div class="content">
+<h3>Lista a la izquierda + vista previa del teléfono</h3>
+<div class="wrap">
+ <div class="panel">
+  <div class="lbl">Botones (arrastra para ordenar) · 4 de 8</div>
+  <div class="row"><span class="grip">⠿</span><b style="flex:1">Pluma principal</b><span>Salida 1</span><span>✎ 🗑</span></div>
+  <div class="row"><span class="grip">⠿</span><b style="flex:1">Peatonal</b><span>Salida 2</span><span>✎ 🗑</span></div>
+  <div class="row"><span class="grip">⠿</span><b style="flex:1">Salida visitas</b><span>Salida 3</span><span>✎ 🗑</span></div>
+  <div class="row"><span class="grip">⠿</span><b style="flex:1">Alberca</b><span>Salida 5</span><span>✎ 🗑</span></div>
+  <div class="row" style="justify-content:center;border-style:dashed">+ Agregar botón</div>
+ </div>
+ <div class="phone">
+  <div style="font-weight:600">Hola, Ana · Calle Lago 12</div>
+  <div class="grid"><div class="btn">🚗 Pluma principal</div><div class="btn">🚶 Peatonal</div><div class="btn">🚗 Salida visitas</div><div class="btn">🏊 Alberca</div></div>
+  <div class="pin"><span>PIN 4821</span><span class="ok">Al corriente</span></div>
+  <div class="tabs"><span>Inicio</span><span>Domicilio</span><span>Accesos</span><span>Cuenta</span></div>
+ </div>
+</div>
+<p>Editas en la lista; el teléfono se actualiza en vivo.</p>
+</div></div>
+
+<div class="option" data-choice="b" onclick="toggleSelect(this)">
+<div class="letter">B</div><div class="content">
+<h3>Editar directo sobre el teléfono</h3>
+<div class="wrap">
+ <div class="phone">
+  <div style="font-weight:600">Hola, Ana · Calle Lago 12</div>
+  <div class="grid"><div class="btn sel">🚗 Pluma principal</div><div class="btn">🚶 Peatonal</div><div class="btn">🚗 Salida visitas</div><div class="btn">🏊 Alberca</div><div class="empty">+</div><div class="empty">+</div><div class="empty">+</div><div class="empty">+</div></div>
+  <div class="pin"><span>PIN 4821</span><span class="ok">Al corriente</span></div>
+  <div class="tabs"><span>Inicio</span><span>Domicilio</span><span>Accesos</span><span>Cuenta</span></div>
+ </div>
+ <div class="panel">
+  <div class="lbl">Botón seleccionado</div>
+  Nombre <input value="Pluma principal">
+  Ícono <select><option>🚗 Vehicular</option><option>🚶 Peatonal</option></select>
+  Salida que abre <select><option>Salida 1 — Pluma entrada</option></select>
+  <p style="color:#666">Arrastra los botones dentro del teléfono para moverlos; toca un hueco “+” para crear uno.</p>
+ </div>
+</div>
+<p>Las 8 posiciones se ven siempre; editas tocando el botón.</p>
+</div></div>
+</div>
+<p>Ambas incluyen una casilla “Ver como moroso” que muestra los botones desactivados.</p>

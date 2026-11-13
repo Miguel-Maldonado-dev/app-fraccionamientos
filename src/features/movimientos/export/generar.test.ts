@@ -1,6 +1,7 @@
 // @vitest-environment node
 import ExcelJS from 'exceljs'
 import { describe, expect, it, vi } from 'vitest'
+import { jsPDF } from 'jspdf'
 import { crearExcel, crearPdf } from './generar'
 
 const autoTableSpy = vi.hoisted(() => vi.fn())
@@ -71,5 +72,23 @@ describe('crearPdf', () => {
     expect(textColorSpy.mock.calls[0]).toEqual([7, 31, 73])
     const opciones = autoTableSpy.mock.calls[0][1] as { headStyles: { fillColor: number[] } }
     expect(opciones.headStyles.fillColor).toEqual([8, 107, 184])
+  })
+})
+
+// PNG 1×1 válido.
+const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+
+describe('crearPdf con logo', () => {
+  it('logo ⇒ addImage arriba a la izquierda', () => {
+    const spy = vi.spyOn(jsPDF.API as unknown as { addImage: (...a: unknown[]) => unknown }, 'addImage')
+    crearPdf(filas, meta, PNG)
+    expect(spy).toHaveBeenCalledWith(PNG, 'PNG', 40, 22, 116, 24)
+    spy.mockRestore()
+  })
+  it('sin logo ⇒ genera sin imagen', () => {
+    const spy = vi.spyOn(jsPDF.API as unknown as { addImage: (...a: unknown[]) => unknown }, 'addImage')
+    crearPdf(filas, meta, null)
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
   })
 })

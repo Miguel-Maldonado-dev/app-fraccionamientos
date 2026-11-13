@@ -30,6 +30,7 @@ import {
 } from './operacion-actions'
 
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))
+vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: vi.fn() }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 vi.mock('@/features/sincronizacion/cola', () => ({ encolar: vi.fn(), instalacionDe: vi.fn() }))
 vi.mock('@/features/sincronizacion/disparar', () => ({ dispararSincronizacion: vi.fn() }))
@@ -176,7 +177,7 @@ describe('residentes', () => {
 
   test('actualizar filtra por id y fraccionamiento', async () => {
     const q = fakeQuery({ data: [{ id: 3 }] })
-    usar({ residentes: q })
+    usar({ residentes: [fakeQuery({ data: { id: 3, telefono: null, user_id: null } }), q] })
     expect((await actualizarResidenteEnFraccionamiento(7, 3, 9, { nombre: 'ana', esPrincipal: true })).ok).toBe(true)
     expect(callsOf(q, 'update')[0].args).toEqual([{ nombre: 'Ana', telefono: null, es_principal: true }])
     expect(eqs(q)).toEqual([
@@ -187,7 +188,7 @@ describe('residentes', () => {
 
   test('eliminar filtra por id y fraccionamiento', async () => {
     const q = fakeQuery({ data: [{ id: 3 }] })
-    usar({ residentes: q })
+    usar({ residentes: [fakeQuery({ data: { id: 3, telefono: null, user_id: null } }), q] })
     expect((await eliminarResidenteEnFraccionamiento(7, 3, 9)).ok).toBe(true)
     expect(callsOf(q, 'delete')).toHaveLength(1)
     expect(eqs(q)).toEqual([

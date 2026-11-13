@@ -74,6 +74,24 @@ test('sin sesión deja pasar /api/auth/signout', async () => {
   expect(res.headers.get('location')).toBeNull()
 })
 
+test('sin sesión de cookies deja pasar /api/app/* (autenticación Bearer propia)', async () => {
+  getClaims.mockResolvedValue({ data: null })
+
+  const res = await updateSession(new NextRequest('http://localhost/api/app/yo'))
+
+  expect(res.status).toBe(200)
+  expect(res.headers.get('location')).toBeNull()
+})
+
+test('sin sesión de cookies deja pasar el cron de sincronización (CRON_SECRET propio)', async () => {
+  getClaims.mockResolvedValue({ data: null })
+
+  const res = await updateSession(new NextRequest('http://localhost/api/sincronizacion/procesar', { method: 'POST' }))
+
+  expect(res.status).toBe(200)
+  expect(res.headers.get('location')).toBeNull()
+})
+
 test('sin sesión deja pasar /login', async () => {
   getClaims.mockResolvedValue({ data: null })
 

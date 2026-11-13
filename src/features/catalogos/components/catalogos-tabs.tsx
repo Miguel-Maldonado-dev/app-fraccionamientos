@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CATALOGOS, ETIQUETA_TAB_REGLAS, TABS_CONFIGURACION, type TabConfiguracion } from '../catalogos'
+import { CATALOGOS, ETIQUETA_TAB_APP, ETIQUETA_TAB_REGLAS, TABS_CONFIGURACION, type TabConfiguracion } from '../catalogos'
 
 export function CatalogosTabs({ tab, children }: { tab: TabConfiguracion; children: ReactNode }) {
   const router = useRouter()
@@ -13,7 +13,7 @@ export function CatalogosTabs({ tab, children }: { tab: TabConfiguracion; childr
       <TabsList className="h-auto flex-wrap">
         {TABS_CONFIGURACION.map((t) => (
           <TabsTrigger key={t} value={t}>
-            {t === 'reglas' ? ETIQUETA_TAB_REGLAS : CATALOGOS[t].tab}
+            {t === 'reglas' ? ETIQUETA_TAB_REGLAS : t === 'app' ? ETIQUETA_TAB_APP : CATALOGOS[t].tab}
           </TabsTrigger>
         ))}
       </TabsList>

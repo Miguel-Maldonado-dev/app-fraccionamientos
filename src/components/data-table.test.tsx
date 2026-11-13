@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { User } from 'lucide-react'
 import { DataTable, type Column } from './data-table'
 
 const { push } = vi.hoisted(() => ({ push: vi.fn() }))
@@ -229,5 +230,31 @@ describe('DataTable', () => {
       render(<DataTable columns={columns} rows={makeRows(1)} getRowKey={(r) => r.id} />)
       expect(screen.getByText('Fila 1').closest('tr')).not.toHaveClass('cursor-pointer')
     })
+  })
+
+  it('por omisión no usa el estilo de tarjeta ni íconos en el encabezado', () => {
+    const { container } = render(
+      <DataTable
+        columns={[{ key: 'n', header: 'Nombre', icon: User, cell: (r: { n: string }) => r.n }]}
+        rows={[{ n: 'Ana' }]}
+        getRowKey={(r) => r.n}
+      />,
+    )
+    expect(container.querySelector('[data-variante="tarjeta"]')).toBeNull()
+    expect(screen.getByRole('columnheader', { name: 'Nombre' }).querySelector('svg')).toBeNull()
+  })
+
+  it('variante tarjeta marca el encabezado y muestra el ícono de columna', () => {
+    const { container } = render(
+      <DataTable
+        variante="tarjeta"
+        columns={[{ key: 'n', header: 'Nombre', icon: User, cell: (r: { n: string }) => r.n }]}
+        rows={[{ n: 'Ana' }]}
+        getRowKey={(r) => r.n}
+      />,
+    )
+    expect(container.querySelector('tr[data-variante="tarjeta"]')).not.toBeNull()
+    const svg = screen.getByRole('columnheader', { name: 'Nombre' }).querySelector('svg')
+    expect(svg).toHaveAttribute('aria-hidden', 'true')
   })
 })

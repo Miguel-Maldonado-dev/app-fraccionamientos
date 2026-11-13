@@ -103,6 +103,8 @@ Los cambios de domicilios, tarjetas, controles y PIN se encolan en `sincronizaci
 
 El cron del hosting debe llamar cada 5 minutos a `POST /api/sincronizacion/procesar` con la cabecera `Authorization: Bearer <CRON_SECRET>`. Sin el secreto correcto responde 401. Mapeo completo: [docs/integraciones/access-core-mapeo.md](docs/integraciones/access-core-mapeo.md).
 
+Contrato de la API para la app móvil de residentes (login, endpoints, lectura con RLS, botones): [docs/integraciones/api-app-movil.md](docs/integraciones/api-app-movil.md).
+
 ## Estructura
 
 - `src/app`: rutas de la aplicación, con los grupos `(auth)` y `(app)` y los endpoints en `api/`.
@@ -177,6 +179,15 @@ La identidad visual es la de WEADMI (paleta, tipografía Sora/Inter y logos); ve
 - **Super admin**: usa `/admin`.
 
 Matriz de permisos completa en la especificación multi-tenant.
+
+## Residentes y app móvil
+
+- **Usuario:** el teléfono a 10 dígitos (se aceptan espacios, guiones y lada `+52`). Internamente es el correo sintético `<teléfono>@auth.internal`; nunca recibe correo.
+- **Quién da de alta:** al agregar un residente (solo administrador) se puede marcar "Dar acceso a la app"; administrador y tesorero pueden dar acceso, restablecer contraseña o quitar acceso desde la fila del residente. Si el teléfono ya tiene cuenta, se vincula sin cambiar su contraseña; una cuenta puede pertenecer a varios domicilios.
+- **Límite:** `fraccionamientos.max_residentes_app` (1–20, por defecto 5) residentes con acceso por domicilio; bajar el máximo no quita a nadie. Al quitar el último domicilio de una cuenta se desactiva y se cierran sus sesiones.
+- **Aislamiento:** por RLS, un residente solo ve su(s) domicilio(s); nunca pagos, residentes, reportes ni configuración ajenos.
+- **Demo local:** `supabase/scripts/demo-local.sql` crea la cuenta `3300000001` / `residente123` (solo local) vinculada a dos domicilios.
+- **App móvil (Expo):** vive en `mobile/`; guía para probarla en el teléfono con Expo Go en [`mobile/README.md`](mobile/README.md). Cada cuenta se liga a un solo dispositivo; se desliga desde la web (domicilio → Residentes → Desligar dispositivo).
 
 ## Documentación
 

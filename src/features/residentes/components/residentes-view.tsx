@@ -8,20 +8,28 @@ import { SearchableSelect } from '@/components/searchable-select'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { matches } from '@/lib/search'
-import type { Views } from '@/lib/supabase/types'
+import type { DispositivoLigado, ResidenteConDomicilio } from '../queries'
 import { useDebouncedValue } from '@/lib/use-debounced-value'
 import { ResidentesTable } from './residentes-table'
 
-type Row = Views<'residentes_info'>
+type Row = ResidenteConDomicilio
 
 export function ResidentesView({
   rows,
   domicilios,
   domicilioId,
+  accesoApp = false,
+  dispositivos,
+  puedeDesligar = false,
 }: {
   rows: Row[]
   domicilios: { id: number; direccion: string }[]
   domicilioId?: number
+  /** Columna App y acciones de la cuenta (administrador y tesorero). */
+  accesoApp?: boolean
+  dispositivos?: DispositivoLigado[]
+  /** Solo el administrador desliga dispositivos. */
+  puedeDesligar?: boolean
 }) {
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -65,7 +73,7 @@ export function ResidentesView({
         </div>
       </FilterBar>
       <Card className="p-0">
-        <ResidentesTable rows={filtradas} />
+        <ResidentesTable rows={filtradas} accesoApp={accesoApp} dispositivos={dispositivos} puedeDesligar={puedeDesligar} />
       </Card>
     </div>
   )

@@ -33,7 +33,7 @@ import { RegistrarPagoCuotaDialog } from '@/features/pagos/components/registrar-
 import { listConceptosExtra, listMetodosPago, listPagosExtraDomicilio } from '@/features/pagos/queries'
 import { domicilioSincronizado, getPinDomicilio } from '@/features/pin/queries'
 import { ResidentesSection } from '@/features/residentes/components/residentes-section'
-import { listResidentesDomicilio } from '@/features/residentes/queries'
+import { getMaxResidentesApp, listDispositivos, listResidentesDomicilio } from '@/features/residentes/queries'
 import { getCurrentUser } from '@/lib/auth/tenant-context'
 import { hasRole } from '@/lib/auth/require-role'
 import { ROLES, ROLES_GESTION } from '@/lib/constants'
@@ -115,6 +115,13 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
     ),
     puedeGestionar && medios.includes('pin') ? getPinDomicilio(supabase, domicilioId) : undefined,
   ])
+  const maxResidentesApp = puedeGestionar ? await getMaxResidentesApp(supabase) : undefined
+  const dispositivos = puedeGestionar
+    ? await listDispositivos(
+        supabase,
+        residentes.flatMap((r) => (r.user_id ? [r.user_id] : [])),
+      )
+    : undefined
 
   const mediosPorConcepto = Object.fromEntries(tiposCuota.map((t) => [t.id, t.medios]))
 
@@ -163,7 +170,14 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
         pin={{ valor: pin, sincronizado }}
         puedeReintentar={puedeGestionar}
       />
-      <ResidentesSection domicilioId={domicilioId} residentes={residentes} />
+      <ResidentesSection
+        domicilioId={domicilioId}
+        residentes={residentes}
+        accesoApp={maxResidentesApp === undefined ? undefined : { max: maxResidentesApp }}
+        puedeAgregar={hasRole(user, [ROLES.ADMINISTRADOR])}
+        dispositivos={dispositivos}
+        puedeDesligar={hasRole(user, [ROLES.ADMINISTRADOR])}
+      />
       <CuotasSection
         domicilioId={domicilioId}
         cuotas={cuotas}
@@ -173,7 +187,9 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
         conceptosDescuento={conceptosDescuento}
         conceptosRecargo={conceptosRecargo}
         renderPagar={(c) => (
-          <RegistrarPagoCuotaDialog cuota={c} metodos={metodos} trigger={<Button size="sm">Pagar</Button>} />
+          <RegistrarPagoCuotaDialog cuota={c} metodos={metodos} trigger={<Button variant="secondary" size="sm">
+                Pagar
+              </Button>} />
         )}
         renderRecibo={(c) => <ReciboPorCuota cuotaId={c.id!} />}
       />

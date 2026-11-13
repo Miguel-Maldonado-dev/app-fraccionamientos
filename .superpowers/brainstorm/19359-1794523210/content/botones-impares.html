@@ -1,0 +1,36 @@
+<h2>Botones impares: el último ocupa todo el ancho</h2>
+<p class="subtitle">Cuadrícula de 2 columnas; si sobra uno, se estira. Haz clic en la opción que prefieras.</p>
+<style>
+.wrap{display:flex;gap:18px;flex-wrap:wrap}
+.phone{width:180px;border:8px solid #222;border-radius:24px;padding:10px;background:#f5f7fb}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.btn{background:#1e3a8a;color:#fff;border-radius:12px;padding:14px 4px;text-align:center;font-size:11px}
+.full{grid-column:1 / -1}
+.cap{text-align:center;font-size:12px;margin-top:4px}
+.row{display:flex;gap:8px;align-items:center;border:1px solid #ddd;border-radius:8px;padding:6px 8px;margin:6px 0;background:#fafafa;font-size:12px}
+</style>
+<div class="options">
+<div class="option" data-choice="auto" onclick="toggleSelect(this)">
+<div class="letter">A</div><div class="content">
+<h3>Automático</h3>
+<div class="wrap">
+ <div><div class="phone"><div class="grid"><div class="btn full">🚗 Pluma principal</div></div></div><div class="cap">1 botón</div></div>
+ <div><div class="phone"><div class="grid"><div class="btn">🚗 Pluma</div><div class="btn">🚶 Peatonal</div><div class="btn full">🏊 Alberca</div></div></div><div class="cap">3 botones</div></div>
+ <div><div class="phone"><div class="grid"><div class="btn">🚗 Pluma</div><div class="btn">🚶 Peatonal</div><div class="btn">🚗 Visitas</div><div class="btn">🏊 Alberca</div><div class="btn full">🏋️ Gimnasio</div></div></div><div class="cap">5 botones</div></div>
+</div>
+<p>Sin configurar nada: el último impar siempre se estira.</p>
+</div></div>
+<div class="option" data-choice="manual" onclick="toggleSelect(this)">
+<div class="letter">B</div><div class="content">
+<h3>Automático + casilla “Ancho completo” por botón</h3>
+<div class="wrap">
+ <div style="min-width:230px">
+  <div class="row">⠿ <b style="flex:1">Pluma principal</b> ☑ Ancho completo</div>
+  <div class="row">⠿ <b style="flex:1">Peatonal</b> ☐ Ancho completo</div>
+  <div class="row">⠿ <b style="flex:1">Alberca</b> ☐ Ancho completo</div>
+ </div>
+ <div><div class="phone"><div class="grid"><div class="btn full">🚗 Pluma principal</div><div class="btn">🚶 Peatonal</div><div class="btn">🏊 Alberca</div></div></div><div class="cap">Pluma destacada arriba</div></div>
+</div>
+<p>Igual que A por omisión, pero el super admin puede destacar cualquier botón.</p>
+</div></div>
+</div>

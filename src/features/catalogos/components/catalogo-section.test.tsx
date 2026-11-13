@@ -25,4 +25,10 @@ describe('CatalogoSection', () => {
     expect(guardar).toHaveBeenCalledWith('descuentos', 3, { nombre: 'Comité', importe: 250 })
     expect(guardarCatalogo).not.toHaveBeenCalled()
   })
+
+  it('usa el encabezado de tarjeta y la acción de editar es un botón de ícono', () => {
+    render(<CatalogoSection catalogo="descuentos" rows={rows} />)
+    expect(screen.getByRole('columnheader', { name: 'Nombre' }).closest('tr')).toHaveClass('bg-muted')
+    expect(screen.getByRole('button', { name: 'Editar Comité' })).toHaveAttribute('data-tono', 'default')
+  })
 })

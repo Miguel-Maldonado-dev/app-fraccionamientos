@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { PageHeader } from '@/components/page-header'
 import { TabsContent } from '@/components/ui/tabs'
 import { TABS_CONFIGURACION, type TabConfiguracion } from '@/features/catalogos/catalogos'
+import { AppResidentesForm } from '@/features/catalogos/components/app-residentes-form'
+import { guardarMaxResidentesApp } from '@/features/catalogos/actions'
 import { CatalogoSection } from '@/features/catalogos/components/catalogo-section'
 import { CatalogosTabs } from '@/features/catalogos/components/catalogos-tabs'
 import { TiposCuotaSection } from '@/features/catalogos/components/tipos-cuota-section'
@@ -34,6 +36,21 @@ async function contenido(tab: TabConfiguracion) {
             conceptos={recargos.map((r) => ({ id: r.id, nombre: r.nombre, monto: Number(r.monto_recargo) }))}
             guardar={guardarReglasCobro}
           />
+        </SectionCard>
+      )
+    }
+    case 'app': {
+      const fid = (await getTenantContext())?.fraccionamiento?.id
+      const { data, error } = fid
+        ? await supabase.from('fraccionamientos').select('max_residentes_app').eq('id', fid).maybeSingle()
+        : { data: null, error: null }
+      if (error) throw new Error(`No se pudo leer la configuración: ${error.message}`)
+      return (
+        <SectionCard
+          title="App de residentes"
+          description="Cuántos residentes de un mismo domicilio pueden tener acceso a la app."
+        >
+          <AppResidentesForm maximo={data?.max_residentes_app ?? 5} guardar={guardarMaxResidentesApp} />
         </SectionCard>
       )
     }

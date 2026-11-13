@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { TIPO_MOVIMIENTO } from '@/lib/constants'
 import type { Views } from '@/lib/supabase/types'
 import { UltimosMovimientos } from './ultimos-movimientos'
 
@@ -53,5 +54,18 @@ describe('UltimosMovimientos', () => {
   it('sin filas muestra el estado vacío', () => {
     render(<UltimosMovimientos rows={[]} />)
     expect(screen.getByText('Sin movimientos')).toBeInTheDocument()
+  })
+
+  it('muestra la descripción, el encabezado de tarjeta y el ingreso con "+ " en verde', () => {
+    const { container } = render(<UltimosMovimientos rows={[row({})]} />)
+    expect(screen.getByText('Tus transacciones más recientes')).toBeInTheDocument()
+    expect(container.querySelector('tr[data-variante="tarjeta"]')).not.toBeNull()
+    expect(screen.getByText('+ $100.00')).toHaveClass('text-success-foreground')
+    expect(screen.getByRole('link', { name: /Ver todos/ })).toHaveAttribute('href', '/movimientos')
+  })
+
+  it('un egreso muestra "- $" con color de peligro', () => {
+    render(<UltimosMovimientos rows={[row({ tipo_id: TIPO_MOVIMIENTO.EGRESO, tipo_movimiento: 'Egreso', importe: 250 })]} />)
+    expect(screen.getByText('- $250.00')).toHaveClass('text-danger-foreground')
   })
 })

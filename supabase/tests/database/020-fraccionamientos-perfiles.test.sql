@@ -69,11 +69,13 @@ select throws_ok(
 
 select results_eq('select slug from public.fraccionamientos',
   $$values ('fracc-a')$$, 'admin.a solo ve fracc-a');
-with u as (update public.fraccionamientos set nombre = 'Cambiado' returning 1)
-select is((select count(*)::int from u), 0, 'admin.a no actualiza fraccionamientos');
-with u as (update public.fraccionamientos set instalacion_id = gen_random_uuid()
-           where slug = 'fracc-a' returning 1)
-select is((select count(*)::int from u), 0, 'admin.a no asigna instalacion_id');
+-- Desde 20261114090000 el administrador puede actualizar solo
+-- max_residentes_app; cualquier otra columna -> 42501 (trigger).
+select throws_ok($$update public.fraccionamientos set nombre = 'Cambiado'$$,
+  '42501', null, 'admin.a no actualiza fraccionamientos');
+select throws_ok($$update public.fraccionamientos set instalacion_id = gen_random_uuid()
+           where slug = 'fracc-a'$$,
+  '42501', null, 'admin.a no asigna instalacion_id');
 
 select tests.autenticar_como('super@test.local');
 select is((select count(*)::int from public.fraccionamientos where slug in ('fracc-a','fracc-b','fracc-c')), 3, 'super ve los 3 fraccionamientos');

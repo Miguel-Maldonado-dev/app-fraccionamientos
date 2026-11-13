@@ -11,6 +11,9 @@ import { guardarReglasCobroConsola } from '@/features/reglas-cobro/actions'
 import { ReglasCobroForm } from '@/features/reglas-cobro/components/reglas-cobro-form'
 import { obtenerReglasCobro } from '@/features/reglas-cobro/queries'
 import { listConceptosRecargo } from '@/features/cuotas/queries'
+import { AccesosVistas } from '@/features/registros-acceso/components/accesos-vistas'
+import { RegistrosTab } from '@/features/registros-acceso/components/registros-tab'
+import { vistaAccesos } from '@/features/registros-acceso/vistas'
 import { PanelSincronizacion } from '@/features/sincronizacion/components/panel-sincronizacion'
 import { procesarAhoraEnFraccionamiento, reintentarTareaEnFraccionamiento } from '@/features/sincronizacion/actions'
 import { listTareasAbiertas, resumenSincronizacion } from '@/features/sincronizacion/queries'
@@ -31,6 +34,9 @@ import {
 import { AddUserDialog } from '@/features/usuarios/components/add-user-dialog'
 import { UsuariosView } from '@/features/usuarios/components/usuarios-view'
 import { listUsuarios } from '@/features/usuarios/queries'
+import { eliminarBoton, guardarBoton, reordenarBotones } from '@/features/app-botones/actions'
+import { ConstructorBotones } from '@/features/app-botones/components/constructor-botones'
+import { listarSalidasApp, listBotonesApp } from '@/features/app-botones/queries'
 import { parseRouteId } from '@/lib/route-id'
 import { requireSuperAdminPage } from '@/lib/auth/require-super-admin-page'
 import { createClient } from '@/lib/supabase/server'
@@ -42,10 +48,7 @@ export default async function FraccionamientoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{
-    tab?: string | string[]
-    estado?: string | string[]
-  }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   await requireSuperAdminPage()
 
@@ -97,6 +100,28 @@ export default async function FraccionamientoPage({
         permitirEditar={false}
       />
     )
+  } else if (tab === 'app') {
+    const [botones, salidas] = await Promise.all([
+      listBotonesApp(supabase, id),
+      fraccionamiento.instalacionId ? listarSalidasApp(fraccionamiento.instalacionId) : Promise.resolve(null),
+    ])
+    contenido = (
+      <SectionCard
+        title="App de residentes"
+        description="Botones que ven los residentes en la app para abrir accesos. Hasta 8, en una cuadrícula de dos columnas."
+      >
+        <ConstructorBotones
+          botones={botones}
+          salidas={salidas}
+          tieneInstalacion={Boolean(fraccionamiento.instalacionId)}
+          acciones={{
+            guardar: guardarBoton.bind(null, id),
+            eliminar: eliminarBoton.bind(null, id),
+            reordenar: reordenarBotones.bind(null, id),
+          }}
+        />
+      </SectionCard>
+    )
   } else if (tab === 'cobro') {
     // Solo las reglas: la consola no muestra pagos ni morosidad.
     const [reglas, recargos] = await Promise.all([obtenerReglasCobro(id), listConceptosRecargo(supabase, id)])
@@ -112,6 +137,17 @@ export default async function FraccionamientoPage({
         />
       </SectionCard>
     )
+  } else if (vistaAccesos(sp.vista) === 'registros') {
+    contenido = (
+      <AccesosVistas vista="registros" fijos={{ tab: 'accesos' }}>
+        {await RegistrosTab({
+          fraccionamientoId: id,
+          searchParams: sp,
+          basePath: `/admin/fraccionamientos/${id}`,
+          fijos: { tab: 'accesos', vista: 'registros' },
+        })}
+      </AccesosVistas>
+    )
   } else {
     const [medios, botones, salidas, resumenSync, tareasSync] = await Promise.all([
       listMedios(supabase, id),
@@ -121,43 +157,45 @@ export default async function FraccionamientoPage({
       listTareasAbiertas(supabase, id, { consola: true }),
     ])
     contenido = (
-      <div className="space-y-6">
-        <SectionCard
-          title="Medios habilitados"
-          description="Medios con los que los domicilios de este fraccionamiento pueden entrar."
-        >
-          <MediosFraccionamiento habilitados={medios} guardar={guardarMediosDeFraccionamiento.bind(null, id)} />
-        </SectionCard>
-        <SectionCard
-          title="Botones de los controles"
-          description="Salida de la instalación que abre cada botón de los controles RF."
-        >
-          {fraccionamiento.instalacionId ? (
-            <BotonesFraccionamiento
-              salidas={salidas}
-              botones={botones}
-              guardar={guardarBotonesDeFraccionamiento.bind(null, id)}
+      <AccesosVistas vista="sincronizacion" fijos={{ tab: 'accesos' }}>
+        <div className="space-y-6">
+          <SectionCard
+            title="Medios habilitados"
+            description="Medios con los que los domicilios de este fraccionamiento pueden entrar."
+          >
+            <MediosFraccionamiento habilitados={medios} guardar={guardarMediosDeFraccionamiento.bind(null, id)} />
+          </SectionCard>
+          <SectionCard
+            title="Botones de los controles"
+            description="Salida de la instalación que abre cada botón de los controles RF."
+          >
+            {fraccionamiento.instalacionId ? (
+              <BotonesFraccionamiento
+                salidas={salidas}
+                botones={botones}
+                guardar={guardarBotonesDeFraccionamiento.bind(null, id)}
+              />
+            ) : (
+              <p className="text-sm text-secondary-foreground">
+                Vincula una instalación de access-core para configurar los botones.
+              </p>
+            )}
+          </SectionCard>
+          <SectionCard title="Sincronización" description="Tareas pendientes o con error hacia access-core.">
+            <PanelSincronizacion
+              resumen={resumenSync}
+              tareas={tareasSync}
+              modo="consola"
+              tieneInstalacion={Boolean(fraccionamiento.instalacionId)}
+              mensajeSinInstalacion="Vincula una instalación de access-core para sincronizar."
+              acciones={{
+                procesar: procesarAhoraEnFraccionamiento.bind(null, id),
+                reintentar: reintentarTareaEnFraccionamiento.bind(null, id),
+              }}
             />
-          ) : (
-            <p className="text-sm text-secondary-foreground">
-              Vincula una instalación de access-core para configurar los botones.
-            </p>
-          )}
-        </SectionCard>
-        <SectionCard title="Sincronización" description="Tareas pendientes o con error hacia access-core.">
-          <PanelSincronizacion
-            resumen={resumenSync}
-            tareas={tareasSync}
-            modo="consola"
-            tieneInstalacion={Boolean(fraccionamiento.instalacionId)}
-            mensajeSinInstalacion="Vincula una instalación de access-core para sincronizar."
-            acciones={{
-              procesar: procesarAhoraEnFraccionamiento.bind(null, id),
-              reintentar: reintentarTareaEnFraccionamiento.bind(null, id),
-            }}
-          />
-        </SectionCard>
-      </div>
+          </SectionCard>
+        </div>
+      </AccesosVistas>
     )
   }
 

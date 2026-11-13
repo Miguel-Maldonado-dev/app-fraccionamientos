@@ -11,6 +11,16 @@ describe('pagosUsuarioFiltroSchema', () => {
     ).toBe(true)
   })
 
+  test('acepta ids de usuario sin versión RFC (usuarios del demo)', () => {
+    expect(
+      pagosUsuarioFiltroSchema.safeParse({
+        usuario: '00000000-0000-0000-0000-0000000000d1',
+        inicio: '2026-01-01',
+        fin: '2026-01-31',
+      }).success,
+    ).toBe(true)
+  })
+
   test('rechaza inicio mayor que fin', () => {
     const r = pagosUsuarioFiltroSchema.safeParse({ usuario: uuid, inicio: '2026-02-01', fin: '2026-01-31' })
     expect(r.success).toBe(false)

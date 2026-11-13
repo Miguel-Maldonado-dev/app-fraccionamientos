@@ -15,6 +15,8 @@ const notFound = vi.fn(() => {
 })
 vi.mock('@/lib/auth/require-super-admin-page', () => ({ requireSuperAdminPage: () => requireSuperAdminPage() }))
 vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn().mockResolvedValue({}) }))
+vi.mock('@/lib/supabase/admin', () => ({ createAdminClient: vi.fn() }))
+vi.mock('@/features/residentes/cuentas-actions', () => ({}))
 vi.mock('@/features/fraccionamientos/queries', () => ({
   getFraccionamiento: (...a: unknown[]) => getFraccionamiento(...a),
 }))

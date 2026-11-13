@@ -1,5 +1,7 @@
 'use client'
 
+import { CARD_TABLE_HEAD_ROW } from './card-table-head'
+
 import { useId, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -10,6 +12,7 @@ import {
   ChevronsRight,
   ChevronsUpDown,
   ChevronUp,
+  type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -41,6 +44,8 @@ export type Column<T> = {
   sortValue?: (row: T) => SortValue
   align?: 'left' | 'right'
   hideBelow?: 'md' | 'lg'
+  /** Ícono decorativo antes del encabezado; solo se muestra con `variante="tarjeta"`. */
+  icon?: LucideIcon
 }
 
 type SortState = { key: string; dir: 'asc' | 'desc' } | null
@@ -127,6 +132,7 @@ export function DataTable<T>({
   emptyAction,
   toolbar,
   rowHref,
+  variante = 'pagina',
 }: {
   columns: Column<T>[]
   rows: T[]
@@ -140,7 +146,10 @@ export function DataTable<T>({
   toolbar?: ReactNode
   /** Ruta que se abre al hacer clic en la fila; sin ruta, la fila no es clicable. */
   rowHref?: (row: T) => string | undefined
+  /** `'tarjeta'`: encabezado redondeado con íconos, para tablas dentro de `SectionCard`. */
+  variante?: 'pagina' | 'tarjeta'
 }) {
+  const tarjeta = variante === 'tarjeta'
   const pageSizeId = useId()
   const [page, setPage] = useState(1)
   const [size, setSize] = useState(pageSize)
@@ -187,17 +196,29 @@ export function DataTable<T>({
   return (
     <div>
       {toolbar ? <div className="px-4 py-3">{toolbar}</div> : null}
-      <div className="overflow-x-auto">
+      <div className={cn('overflow-x-auto', tarjeta && 'px-5')}>
         <Table>
-          <TableHeader>
-            <TableRow className="bg-muted hover:bg-muted">
+          <TableHeader className={tarjeta ? '[&_tr]:border-b-0' : undefined}>
+            <TableRow
+              className={tarjeta ? CARD_TABLE_HEAD_ROW : 'bg-muted hover:bg-muted'}
+              data-variante={tarjeta ? 'tarjeta' : undefined}
+            >
               {columns.map((c) => {
                 const active = sort?.key === c.key ? sort.dir : null
                 const SortIcon = active === 'asc' ? ChevronUp : active === 'desc' ? ChevronDown : ChevronsUpDown
+                const HeaderIcon = tarjeta ? c.icon : undefined
+                const header = HeaderIcon ? (
+                  <span className="inline-flex items-center gap-2 align-middle">
+                    <HeaderIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    {c.header}
+                  </span>
+                ) : (
+                  c.header
+                )
                 return (
                   <TableHead
                     key={c.key}
-                    className={columnClass(c)}
+                    className={cn(tarjeta && 'font-medium leading-none text-foreground', columnClass(c))}
                     aria-sort={c.sortValue ? ariaSort(sort, c.key) : undefined}
                   >
                     {c.sortValue ? (
@@ -206,14 +227,15 @@ export function DataTable<T>({
                         onClick={() => toggleSort(c.key)}
                         className={cn(
                           'inline-flex min-h-10 items-center gap-1 rounded-sm font-medium outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          tarjeta && 'align-middle',
                           active && 'text-foreground',
                         )}
                       >
-                        {c.header}
+                        {header}
                         <SortIcon className="size-3.5" aria-hidden="true" />
                       </button>
                     ) : (
-                      c.header
+                      header
                     )}
                   </TableHead>
                 )

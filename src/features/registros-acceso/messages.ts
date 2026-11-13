@@ -1,0 +1,7 @@
+export const MSG_NO_AUTORIZADO = 'No autorizado'
+export const MSG_DEMASIADAS = 'Demasiadas consultas, espera un momento'
+export const MSG_ERROR_REGISTROS = 'No se pudieron cargar los registros'
+export const MSG_SIN_INSTALACION = 'Este fraccionamiento no tiene instalación de access-core.'
+export const MSG_FILTROS_INVALIDOS = 'Filtros inválidos'
+export const MSG_SIN_REGISTROS_EXPORTAR = 'No hay registros para exportar'
+export const MSG_ERROR_EXPORTAR = 'No se pudo completar la exportación, intenta de nuevo'

@@ -4,7 +4,14 @@ import { SUPABASE_KEY, SUPABASE_URL } from '@/lib/supabase/env'
 import type { Database } from '@/lib/supabase/types'
 
 function isPublicPath(pathname: string): boolean {
-  return pathname === '/login' || pathname.startsWith('/api/auth')
+  // Estas rutas autentican por Bearer por sí mismas (sin cookies): el proxy no debe redirigirlas.
+  // `/api/app/*`: token del residente (app móvil). `/api/sincronizacion/procesar`: CRON_SECRET.
+  return (
+    pathname === '/login' ||
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/app/') ||
+    pathname === '/api/sincronizacion/procesar'
+  )
 }
 
 /** Redirige sin perder las cookies de sesión que Supabase haya renovado en esta petición. */

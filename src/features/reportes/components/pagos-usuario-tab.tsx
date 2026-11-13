@@ -1,4 +1,5 @@
 import { listMetodosPago } from '@/features/pagos/queries'
+import { getTenantContext } from '@/lib/auth/tenant-context'
 import { parseRouteId } from '@/lib/route-id'
 import { createClient } from '@/lib/supabase/server'
 import { filtrarPorMetodo } from '../filtros-pagos'
@@ -21,7 +22,8 @@ export async function PagosUsuarioTab({
   const supabase = await createClient()
   const parsed = pagosUsuarioFiltroSchema.safeParse({ usuario, inicio, fin })
   // Los pagos no dependen de los catálogos: las tres lecturas van en paralelo.
-  const [usuarios, metodos, rows] = await Promise.all([
+  const [ctx, usuarios, metodos, rows] = await Promise.all([
+    getTenantContext(),
     listUsuariosReporte(supabase),
     listMetodosPago(supabase),
     parsed.success
@@ -46,7 +48,18 @@ export async function PagosUsuarioTab({
         fin={fin}
         metodo={metodoId === null ? undefined : String(metodoId)}
       />
-      {rows && <PagosUsuarioResultado rows={filtrarPorMetodo(rows, metodoId)} />}
+      {rows && parsed.success && (
+        <PagosUsuarioResultado
+          rows={filtrarPorMetodo(rows, metodoId)}
+          exportar={{
+            fraccionamiento: ctx?.fraccionamiento?.nombre ?? '',
+            usuario: usuarios.find((u) => u.id === parsed.data.usuario)?.user_name ?? '—',
+            inicio: parsed.data.inicio,
+            fin: parsed.data.fin,
+            metodo: metodos.find((m) => m.id === metodoId)?.name ?? 'Todos los métodos',
+          }}
+        />
+      )}
     </div>
   )
 }

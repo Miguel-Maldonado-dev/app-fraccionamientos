@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     ".agents/**",
     ".claude/**",
     "supabase/.temp/**",
+    // App móvil (Expo): tiene su propio tsconfig, jest y lint.
+    "mobile/**",
   ]),
 ]);
 

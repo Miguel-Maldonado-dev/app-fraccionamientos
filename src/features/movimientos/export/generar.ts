@@ -44,18 +44,28 @@ export async function crearExcel(filas: FilaExport[]): Promise<ArrayBuffer> {
   return (await wb.xlsx.writeBuffer()) as ArrayBuffer
 }
 
-export function crearPdf(filas: FilaExport[], meta: MetaExport): ArrayBuffer {
+/** `logo`: data URL PNG del logotipo (ver `cargarLogo`); sin logo el encabezado empieza arriba. */
+export function crearPdf(filas: FilaExport[], meta: MetaExport, logo?: string | null): ArrayBuffer {
   const doc = new jsPDF({ unit: 'pt', format: 'letter' })
   const margen = 40
+  let y = 50
+  if (logo) {
+    try {
+      doc.addImage(logo, 'PNG', margen, 22, 116, 24)
+      y += 34
+    } catch {
+      // Logo ilegible: el PDF sale sin él.
+    }
+  }
 
   doc.setFont('helvetica', 'bold').setFontSize(16).setTextColor(...PDF_NAVY)
-  doc.text(`Movimientos financieros · ${meta.fraccionamientoNombre}`, margen, 50)
+  doc.text(`Movimientos financieros · ${meta.fraccionamientoNombre}`, margen, y)
   doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(...PDF_TEXTO_SECUNDARIO)
-  doc.text(`Generado el ${formatDate(meta.generado)}`, margen, 68)
-  doc.text(meta.filtros, margen, 82)
+  doc.text(`Generado el ${formatDate(meta.generado)}`, margen, y + 18)
+  doc.text(meta.filtros, margen, y + 32)
 
   autoTable(doc, {
-    startY: 96,
+    startY: y + 46,
     margin: { left: margen, right: margen },
     head: [ENCABEZADOS],
     body: filas.map((f) => [f.tipo, f.descripcion, importeTexto(f.importe), formatDate(f.fecha)]),
@@ -77,7 +87,7 @@ export function crearPdf(filas: FilaExport[], meta: MetaExport): ArrayBuffer {
 
   // Consolidado al final: autoTable deja la tabla anterior en `lastAutoTable`; sin `startY`
   // la nueva empezaría arriba de la página, encima de los movimientos.
-  const finalY = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? 96
+  const finalY = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ?? y + 46
   autoTable(doc, {
     startY: finalY + 20,
     margin: { left: margen, right: margen },

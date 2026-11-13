@@ -86,3 +86,24 @@ export type BotonCuerpo = {
 }
 
 export type ControlCuerpo = { holder_id: string; description?: string; buttons: BotonCuerpo[] }
+
+export type Log = {
+  id: number
+  ts: string
+  panel_id: string
+  panel_code: string
+  allowed: boolean
+  /** 0 tarjeta, 1 control RF, 2 botón de salida, 3 PIN, 4 remota, 5 prueba. */
+  source: 0 | 1 | 2 | 3 | 4 | 5
+  /** 0–11, ver `MOTIVOS`. */
+  reason: number
+  holder_id: string | null
+  holder_name: string | null
+  holder_kind: 'persona' | 'domicilio' | null
+  credential_label: string | null
+  control_id: string | null
+  code: number | null
+  device_id: number | null
+  output_index: number | null
+  output_alias: string | null
+}

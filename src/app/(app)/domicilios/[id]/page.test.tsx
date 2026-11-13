@@ -60,7 +60,11 @@ vi.mock('@/features/pagos/queries', () => ({
   listPagosExtraDomicilio: vacio(),
 }))
 vi.mock('@/features/residentes/components/residentes-section', () => ({ ResidentesSection: nada }))
-vi.mock('@/features/residentes/queries', () => ({ listResidentesDomicilio: vacio() }))
+vi.mock('@/features/residentes/queries', () => ({
+  listResidentesDomicilio: vacio(),
+  getMaxResidentesApp: vi.fn().mockResolvedValue(5),
+  listDispositivos: vacio(),
+}))
 vi.mock('@/features/sincronizacion/queries', () => ({
   estadoDeEntidades: (...a: unknown[]) => estadoDeEntidades(...a),
   estadoDomicilio: vi.fn().mockResolvedValue(null),

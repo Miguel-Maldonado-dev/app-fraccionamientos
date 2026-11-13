@@ -28,6 +28,12 @@ describe('MetricasPlataforma', () => {
     expect(within(screen.getByRole('row', { name: /Los Pinos/ })).getByText('Inactivo')).toBeInTheDocument()
   })
 
+  it('la tabla usa la variante tarjeta con ícono en el título', () => {
+    const { container } = render(<MetricasPlataforma rows={rows} />)
+    expect(container.querySelector('tr[data-variante="tarjeta"]')).not.toBeNull()
+    expect(container.querySelector('[data-slot="section-card-icon-tile"]')).not.toBeNull()
+  })
+
   it('sin filas muestra el estado vacío con la acción', () => {
     render(<MetricasPlataforma rows={[]} />)
     expect(screen.getByText('Aún no hay fraccionamientos.')).toBeInTheDocument()

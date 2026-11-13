@@ -10,6 +10,8 @@ const listarInstalacionesDisponibles = vi.fn()
 const listarSalidasDe = vi.fn()
 const listMedios = vi.fn()
 const listBotones = vi.fn()
+const listBotonesApp = vi.fn()
+const listarSalidasApp = vi.fn()
 const notFound = vi.fn(() => {
   throw new Error('NEXT_NOT_FOUND')
 })
@@ -33,6 +35,11 @@ vi.mock('@/features/sincronizacion/actions', () => ({
   procesarAhoraEnFraccionamiento: vi.fn(),
   reintentarTareaEnFraccionamiento: vi.fn(),
 }))
+vi.mock('@/features/app-botones/queries', () => ({
+  listBotonesApp: (...a: unknown[]) => listBotonesApp(...a),
+  listarSalidasApp: (...a: unknown[]) => listarSalidasApp(...a),
+}))
+vi.mock('@/features/app-botones/actions', () => ({ guardarBoton: vi.fn(), eliminarBoton: vi.fn(), reordenarBotones: vi.fn() }))
 vi.mock('@/features/fraccionamientos/medios-actions', () => ({ guardarMediosDeFraccionamiento: vi.fn() }))
 vi.mock('@/features/fraccionamientos/botones-actions', () => ({ guardarBotonesDeFraccionamiento: vi.fn() }))
 vi.mock('@/features/domicilios/queries', () => ({
@@ -60,6 +67,13 @@ const listConceptosRecargo = vi.fn()
 vi.mock('@/features/reglas-cobro/queries', () => ({ obtenerReglasCobro: (...a: unknown[]) => obtenerReglasCobro(...a) }))
 vi.mock('@/features/reglas-cobro/actions', () => ({ guardarReglasCobroConsola: vi.fn() }))
 vi.mock('@/features/cuotas/queries', () => ({ listConceptosRecargo: (...a: unknown[]) => listConceptosRecargo(...a) }))
+
+const consultarRegistros = vi.fn()
+const opcionesRegistros = vi.fn()
+vi.mock('@/features/registros-acceso/actions', () => ({
+  consultarRegistros: (...a: unknown[]) => consultarRegistros(...a),
+  opcionesRegistros: (...a: unknown[]) => opcionesRegistros(...a),
+}))
 
 import FraccionamientoPage from './page'
 
@@ -105,6 +119,8 @@ describe('detalle de fraccionamiento', () => {
     listMedios.mockReset().mockResolvedValue(['tarjeta'])
     listTareasAbiertas.mockReset().mockResolvedValue([])
     listBotones.mockReset().mockResolvedValue([])
+    listBotonesApp.mockReset().mockResolvedValue([])
+    listarSalidasApp.mockReset().mockResolvedValue([])
     notFound.mockClear()
   })
 
@@ -207,8 +223,26 @@ describe('detalle de fraccionamiento', () => {
     expect(screen.queryByText(/moroso(s)?$/i, { selector: 'th,td' })).not.toBeInTheDocument()
   })
 
+  it('pestaña App de residentes: constructor con vista previa, sin consultar salidas sin instalación', async () => {
+    listBotonesApp.mockResolvedValue([
+      { id: 1, orden: 1, nombre: 'Pluma', icono: 'pluma', ancho_completo: false, salida_id: null, salida_nombre: null },
+    ])
+    render(await FraccionamientoPage(props('5', { tab: 'app' })))
+    expect(screen.getByRole('tab', { name: 'App de residentes' })).toHaveAttribute('aria-selected', 'true')
+    expect(listBotonesApp).toHaveBeenCalledWith({}, 5)
+    expect(listarSalidasApp).not.toHaveBeenCalled()
+    expect(screen.getByText('1 de 8')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Vista previa de la app' })).toBeInTheDocument()
+  })
+
+  it('pestaña App de residentes con instalación consulta salidas', async () => {
+    getFraccionamiento.mockResolvedValue({ ...fracc, instalacionId: 'i-1', instalacionNombre: 'Norte' })
+    render(await FraccionamientoPage(props('5', { tab: 'app' })))
+    expect(listarSalidasApp).toHaveBeenCalledWith('i-1')
+  })
+
   it('pestaña accesos sin instalación: medios y aviso para vincular, sin consultar salidas', async () => {
-    render(await FraccionamientoPage(props('5', { tab: 'accesos' })))
+    render(await FraccionamientoPage(props('5', { tab: 'accesos', vista: 'sincronizacion' })))
     expect(screen.getByRole('tab', { name: 'Accesos' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('Medios habilitados')).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Tarjeta' })).toBeChecked()
@@ -223,7 +257,7 @@ describe('detalle de fraccionamiento', () => {
 
   it('pestaña accesos con instalación: consulta salidas y muestra los botones', async () => {
     getFraccionamiento.mockResolvedValue({ ...fracc, instalacionId: 'i-1', instalacionNombre: 'Norte' })
-    render(await FraccionamientoPage(props('5', { tab: 'accesos' })))
+    render(await FraccionamientoPage(props('5', { tab: 'accesos', vista: 'sincronizacion' })))
     expect(listarSalidasDe).toHaveBeenCalledWith('i-1')
     expect(screen.getByRole('combobox', { name: 'Botón 1' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Procesar ahora' })).toBeInTheDocument()
@@ -235,7 +269,7 @@ describe('detalle de fraccionamiento', () => {
     listTareasAbiertas.mockResolvedValue([
       { id: 't', domicilio_id: 1, entidad: 'domicilio', operacion: 'asignar', estado: 'pendiente', intentos: 0, ultimo_error: null, direccion: 'Calle 1' },
     ])
-    render(await FraccionamientoPage(props('5', { tab: 'accesos' })))
+    render(await FraccionamientoPage(props('5', { tab: 'accesos', vista: 'sincronizacion' })))
     expect(screen.getByText('Actualizar acceso')).toBeInTheDocument()
     expect(screen.queryByText('Asignar permiso')).not.toBeInTheDocument()
   })
@@ -243,14 +277,27 @@ describe('detalle de fraccionamiento', () => {
   it('pestaña accesos con la API caída: botones deshabilitados con aviso', async () => {
     getFraccionamiento.mockResolvedValue({ ...fracc, instalacionId: 'i-1', instalacionNombre: 'Norte' })
     listarSalidasDe.mockResolvedValue(null)
-    render(await FraccionamientoPage(props('5', { tab: 'accesos' })))
+    render(await FraccionamientoPage(props('5', { tab: 'accesos', vista: 'sincronizacion' })))
     expect(screen.getByText('No se pudo consultar access-core')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Botón 1' })).toBeDisabled()
   })
 
   it('no hay pestañas de catálogos y ?tab=cuotas cae en domicilios', async () => {
     render(await FraccionamientoPage(props('5', { tab: 'cuotas' })))
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Domicilios', 'Usuarios', 'Accesos', 'Reglas de cobro'])
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Domicilios', 'Usuarios', 'Accesos', 'App de residentes', 'Reglas de cobro'])
     expect(screen.getByRole('tab', { name: 'Domicilios' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('pestaña accesos por omisión muestra Registros con el id del fraccionamiento', async () => {
+    consultarRegistros.mockResolvedValue({ ok: true, filas: [], total: 0, pagina: 1, paginas: 0 })
+    opcionesRegistros.mockResolvedValue({ domicilios: [], paneles: [] })
+    render(await FraccionamientoPage(props('5', { tab: 'accesos' })))
+    expect(screen.getByRole('tab', { name: 'Registros' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Sincronización' })).toBeInTheDocument()
+    // Sin aplicar filtros no se consulta; las opciones de los filtros sí se cargan.
+    expect(consultarRegistros).not.toHaveBeenCalled()
+    expect(opcionesRegistros).toHaveBeenCalledWith(5)
+    expect(screen.getByText(/Configura los filtros y presiona/)).toBeInTheDocument()
+    expect(screen.queryByText('Medios habilitados')).not.toBeInTheDocument()
   })
 })

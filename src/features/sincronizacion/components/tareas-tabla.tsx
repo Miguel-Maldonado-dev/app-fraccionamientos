@@ -1,8 +1,10 @@
 'use client'
 
-import { SyncBadge } from '@/components/sync-badge'
+import { AlertTriangle, Cable, Hash, Home, RefreshCw, Settings2 } from 'lucide-react'
+import { CARD_TABLE_HEAD_ROW, CardTableHead } from '@/components/card-table-head'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { SyncBadge } from '@/components/sync-badge'
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table'
 import type { Entidad, Operacion, Tarea } from '../tipos'
 
 const ENTIDAD_LABEL: Record<Entidad, string> = {
@@ -41,15 +43,15 @@ export function TareasTabla({
     modo === 'consola' && t.operacion === 'asignar' ? 'Actualizar acceso' : (OPERACION_LABEL[t.operacion as Operacion] ?? t.operacion)
   return (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Domicilio</TableHead>
-          <TableHead>Medio</TableHead>
-          <TableHead>Operación</TableHead>
-          <TableHead>Intentos</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Error</TableHead>
-          <TableHead className="w-0" />
+      <TableHeader className="[&_tr]:border-b-0">
+        <TableRow className={CARD_TABLE_HEAD_ROW}>
+          <CardTableHead icon={Home}>Domicilio</CardTableHead>
+          <CardTableHead icon={Cable}>Medio</CardTableHead>
+          <CardTableHead icon={Settings2}>Operación</CardTableHead>
+          <CardTableHead icon={Hash}>Intentos</CardTableHead>
+          <CardTableHead icon={RefreshCw}>Estado</CardTableHead>
+          <CardTableHead icon={AlertTriangle}>Error</CardTableHead>
+          <CardTableHead className="w-0" />
         </TableRow>
       </TableHeader>
       <TableBody>

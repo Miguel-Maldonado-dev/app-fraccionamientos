@@ -1,0 +1,51 @@
+<h2>App de residentes WEADMI — pantallas propuestas</h2>
+<p class="subtitle">4 pestañas: Inicio · Domicilio · Accesos · Cuenta. Comenta qué cambiarías.</p>
+<style>
+.row{display:flex;gap:18px;flex-wrap:wrap}
+.ph{width:210px;height:430px;border:9px solid #111;border-radius:30px;background:#F5F8FC;display:flex;flex-direction:column;overflow:hidden;font-size:11px;color:#172536}
+.top{background:#071F49;color:#fff;padding:12px 10px 10px}
+.top b{font-size:13px}.sel{font-size:10px;opacity:.85;margin-top:3px}
+.body{flex:1;padding:8px;overflow:hidden}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.b{background:#087BE8;color:#fff;border-radius:12px;padding:14px 4px;text-align:center;font-weight:600}
+.full{grid-column:1/-1}.off{background:#c9d3de;color:#6b7a8a}
+.card{background:#fff;border:1px solid #E8EEF4;border-radius:10px;padding:8px;margin-top:8px}
+.ok{color:#15803d;font-weight:700}.bad{color:#b91c1c;font-weight:700}
+.tabs{display:flex;justify-content:space-around;border-top:1px solid #E8EEF4;background:#fff;padding:7px 0;font-size:9px;color:#496985}
+.tabs .a{color:#087BE8;font-weight:700}
+.li{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #E8EEF4}
+.cap{text-align:center;font-size:12px;margin-top:6px;font-weight:600}
+.h{font-weight:700;margin:6px 0 2px}
+</style>
+<div class="row">
+<div><div class="ph"><div class="top"><b>Hola, Ana</b><div class="sel">Calle Lago 12 ▾ · Lago Amadeo</div></div>
+<div class="body"><div class="grid"><div class="b full">🚗 Pluma principal</div><div class="b">🚶 Peatonal</div><div class="b">🚗 Visitas</div><div class="b full">🏊 Alberca</div></div>
+<div class="card" style="display:flex;justify-content:space-between"><span>PIN <b style="letter-spacing:2px">4821</b> 👁</span><span class="ok">● Al corriente</span></div>
+<div class="card" style="color:#496985">Toca un botón para abrir. Verás “Abierto ✓” en 1–2 s.</div></div>
+<div class="tabs"><span class="a">Inicio</span><span>Domicilio</span><span>Accesos</span><span>Cuenta</span></div></div><div class="cap">Inicio</div></div>
+
+<div><div class="ph"><div class="top"><b>Hola, Ana</b><div class="sel">Calle Lago 12 ▾</div></div>
+<div class="body"><div class="grid"><div class="b full off">🚗 Pluma principal</div><div class="b off">🚶 Peatonal</div><div class="b off">🚗 Visitas</div><div class="b full off">🏊 Alberca</div></div>
+<div class="card" style="display:flex;justify-content:space-between"><span>PIN ••••</span><span class="bad">● Con adeudo</span></div>
+<div class="card" style="border-color:#fecaca;background:#fef2f2">Tu domicilio tiene adeudos. Los accesos remotos se reactivan al ponerte al corriente.</div></div>
+<div class="tabs"><span class="a">Inicio</span><span>Domicilio</span><span>Accesos</span><span>Cuenta</span></div></div><div class="cap">Inicio (moroso)</div></div>
+
+<div><div class="ph"><div class="top"><b>Domicilio</b><div class="sel">Calle Lago 12</div></div>
+<div class="body"><div class="h">Cuotas</div>
+<div class="li"><span>Nov 2026</span><span class="ok">Pagada</span></div><div class="li"><span>Dic 2026</span><span>Pendiente $850</span></div>
+<div class="h">Recibos</div><div class="li"><span>#1042 · 28 oct</span><span>Ver ›</span></div><div class="li"><span>#0988 · 27 sep</span><span>Ver ›</span></div>
+<div class="h">Residentes (2 de 5)</div><div class="li"><span>Ana ⭐ principal</span><span>📱</span></div><div class="li"><span>Luis</span><span>Quitar</span></div><div style="color:#087BE8;margin-top:5px">+ Agregar residente</div></div>
+<div class="tabs"><span>Inicio</span><span class="a">Domicilio</span><span>Accesos</span><span>Cuenta</span></div></div><div class="cap">Domicilio</div></div>
+
+<div><div class="ph"><div class="top"><b>Mis accesos</b><div class="sel">Calle Lago 12</div></div>
+<div class="body"><div class="h">Tarjetas</div><div class="li"><span>💳 Tarjeta 1 · 0012345</span><span>✓</span></div>
+<div class="h">Controles</div><div class="li"><span>📟 Control camioneta</span><span>✓</span></div>
+<div class="h">PIN</div><div class="li"><span>🔢 ••••</span><span>✓</span></div>
+<div class="h">Teléfonos</div><div class="li"><span>📞 33 1234 5678</span><span>✓</span></div></div>
+<div class="tabs"><span>Inicio</span><span>Domicilio</span><span class="a">Accesos</span><span>Cuenta</span></div></div><div class="cap">Accesos (solo lectura)</div></div>
+
+<div><div class="ph"><div class="top"><b>Cuenta</b><div class="sel">33 1234 5678</div></div>
+<div class="body"><div class="li"><span>Mis domicilios</span><span>2 ›</span></div><div class="li"><span>Cambiar contraseña</span><span>›</span></div><div class="li"><span>Acerca de WEADMI</span><span>›</span></div><div class="li" style="color:#b91c1c"><span>Cerrar sesión</span></div></div>
+<div class="tabs"><span>Inicio</span><span>Domicilio</span><span>Accesos</span><span class="a">Cuenta</span></div></div><div class="cap">Cuenta</div></div>
+</div>
+<p>Login: logo WEADMI, “Teléfono” (10 dígitos) + “Contraseña”. El selector “Calle Lago 12 ▾” aparece solo si tienes más de un domicilio.</p>

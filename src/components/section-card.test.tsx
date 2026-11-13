@@ -35,4 +35,26 @@ describe('SectionCard', () => {
     const { container } = render(<SectionCard title="Residentes">contenido</SectionCard>)
     expect(container.querySelector('[data-slot="section-card-icon"]')).toBeNull()
   })
+
+  it('el ícono va dentro de un recuadro', () => {
+    const { container } = render(
+      <SectionCard title="Residentes" icon={Users}>
+        contenido
+      </SectionCard>,
+    )
+    const tile = container.querySelector('[data-slot="section-card-icon-tile"]')
+    expect(tile).toHaveClass('bg-brand-primary/10')
+    expect(tile?.querySelector('[data-slot="section-card-icon"]')).not.toBeNull()
+  })
+
+  it('stats se muestran antes de la acción', () => {
+    render(
+      <SectionCard title="Cuotas" stats={<span>3 Pagadas</span>} action={<button type="button">Crear Cuota</button>}>
+        contenido
+      </SectionCard>,
+    )
+    const stats = screen.getByText('3 Pagadas')
+    const action = screen.getByRole('button', { name: 'Crear Cuota' })
+    expect(stats.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
 })

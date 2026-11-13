@@ -5,12 +5,13 @@ import { revalidatePath } from 'next/cache'
 import { fail, ok, type ActionResult } from '@/lib/action-result'
 import { runAction } from '@/lib/auth/run-action'
 import { ROLES, TIPO_PAGO } from '@/lib/constants'
+import { getTenantContext } from '@/lib/auth/tenant-context'
 import { createClient } from '@/lib/supabase/server'
 import { encolar, instalacionDe, recalcularPermisos } from '@/features/sincronizacion/cola'
 import { dispararSincronizacion } from '@/features/sincronizacion/disparar'
 import type { CatalogoSimple } from './catalogos'
-import { MSG_NO_ENCONTRADO, MSG_NOMBRE_DUPLICADO } from './messages'
-import { catalogoSchema, tipoCuotaSchema, type CatalogoInput, type TipoCuotaInput } from './schemas'
+import { MSG_MAX_APP_INVALIDO, MSG_NO_ENCONTRADO, MSG_NOMBRE_DUPLICADO } from './messages'
+import { catalogoSchema, maxResidentesAppSchema, tipoCuotaSchema, type CatalogoInput, type TipoCuotaInput } from './schemas'
 
 type TablaCatalogo = 'conceptos_pago' | 'conceptos_descuento' | 'conceptos_recargo'
 type Destino = { tabla: TablaCatalogo; columnaMonto: string; tipoPagoId?: number }
@@ -234,4 +235,23 @@ export async function guardarCatalogo(
 
 export async function guardarTipoCuota(id: number | null, input: TipoCuotaInput): Promise<ActionResult> {
   return runAction(ADMIN, () => guardarTipoCuotaEn(null, id, input))
+}
+
+/** Máximo de residentes con acceso a la app por domicilio. Solo administrador; RLS limita al suyo. */
+export async function guardarMaxResidentesApp(valor: number): Promise<ActionResult> {
+  return runAction(ADMIN, async () => {
+    const parsed = maxResidentesAppSchema.safeParse(valor)
+    if (!parsed.success) return fail(MSG_MAX_APP_INVALIDO)
+    const fid = (await getTenantContext())?.fraccionamiento?.id
+    if (fid == null) return fail(MSG_NO_ENCONTRADO)
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('fraccionamientos')
+      .update({ max_residentes_app: parsed.data })
+      .eq('id', fid)
+    if (error) throw new Error(error.message)
+    revalidatePath('/configuracion')
+    revalidatePath('/domicilios', 'layout')
+    return ok(undefined)
+  })
 }

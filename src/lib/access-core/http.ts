@@ -13,7 +13,12 @@ const TIMEOUT_MS = 10_000
 export async function llamar<T>(
   metodo: Metodo,
   ruta: string,
-  opciones: { cuerpo?: unknown; idempotencyKey?: string } = {},
+  opciones: {
+    cuerpo?: unknown
+    idempotencyKey?: string
+    /** Devuelve el JSON completo sin desenvolver `data` (respuestas paginadas con `page`/`total`). */
+    completo?: boolean
+  } = {},
 ): Promise<T> {
   const { url, apiKey } = leerConfig()
   const headers: Record<string, string> = {
@@ -57,6 +62,7 @@ export async function llamar<T>(
   }
 
   if (json === undefined) return undefined as T
+  if (opciones.completo) return json as T
   if (typeof json === 'object' && json !== null && 'data' in json) return (json as { data: T }).data
   return json as T
 }

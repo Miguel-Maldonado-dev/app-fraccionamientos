@@ -1,0 +1,6 @@
+export const MSG_MAXIMO_BOTONES = 'Ya hay 8 botones; elimina uno para agregar otro.'
+export const MSG_BOTON_NO_EXISTE = 'El botón ya no existe.'
+export const MSG_SIN_INSTALACION = 'Liga una instalación en la pestaña Accesos'
+export const MSG_SALIDA_NO_EXISTE = 'La salida elegida ya no existe en la instalación.'
+export const MSG_ACCESS_CORE = 'No se pudo consultar access-core. Intenta de nuevo.'
+export const MSG_ORDEN_INVALIDO = 'La lista de botones cambió; recarga la página.'
