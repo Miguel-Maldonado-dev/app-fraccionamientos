@@ -25,6 +25,16 @@ describe('CuotasTable', () => {
     expect(screen.queryByText('Calle B 2')).not.toBeInTheDocument()
   })
 
+  test('filtra por Cancelada (estatus_calculado de la vista; el almacenado es Cancelado)', () => {
+    const data = [
+      { ...row(1, 'Calle A 1', 'Cancelado'), estatus_calculado: 'Cancelada' } as CuotaInfo,
+      row(2, 'Calle B 2', 'Pagado'),
+    ]
+    render(<CuotasTable rows={data} estatus="Cancelada" />)
+    expect(screen.getByText('Calle A 1')).toBeInTheDocument()
+    expect(screen.queryByText('Calle B 2')).not.toBeInTheDocument()
+  })
+
   test('sin estatus muestra todas', () => {
     render(<CuotasTable rows={rows} estatus={null} />)
     expect(screen.getAllByText(/Calle/)).toHaveLength(3)

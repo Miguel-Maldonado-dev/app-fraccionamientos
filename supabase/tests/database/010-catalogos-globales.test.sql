@@ -2,7 +2,7 @@ begin;
 select plan(7);
 
 select results_eq('select id, name from public.estatus order by id',
-  $$values (1::bigint,'Pendiente'),(2,'Pagado'),(3,'Vencido')$$, 'estatus con ids fijos');
+  $$values (1::bigint,'Pendiente'),(2,'Pagado'),(3,'Vencido'),(4,'Cancelado')$$, 'estatus con ids fijos');
 select results_eq('select count(*)::int from public.anios', 'values (11)', '11 años');
 
 set local role authenticated;

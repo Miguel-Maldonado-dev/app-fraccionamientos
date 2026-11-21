@@ -366,6 +366,8 @@ export type Database = {
       cuotas: {
         Row: {
           anio: number
+          cancelada_en: string | null
+          cancelada_por: string | null
           concepto_id: number
           created_at: string
           domicilio_id: number
@@ -375,9 +377,12 @@ export type Database = {
           id: number
           importe: number
           mes: number
+          motivo_cancelacion: string | null
         }
         Insert: {
           anio: number
+          cancelada_en?: string | null
+          cancelada_por?: string | null
           concepto_id: number
           created_at?: string
           domicilio_id: number
@@ -387,9 +392,12 @@ export type Database = {
           id?: number
           importe: number
           mes: number
+          motivo_cancelacion?: string | null
         }
         Update: {
           anio?: number
+          cancelada_en?: string | null
+          cancelada_por?: string | null
           concepto_id?: number
           created_at?: string
           domicilio_id?: number
@@ -399,6 +407,7 @@ export type Database = {
           id?: number
           importe?: number
           mes?: number
+          motivo_cancelacion?: string | null
         }
         Relationships: [
           {
@@ -424,6 +433,51 @@ export type Database = {
           },
           {
             foreignKeyName: "cuotas_fraccionamiento_id_fkey"
+            columns: ["fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "fraccionamientos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cuotas_cancelaciones: {
+        Row: {
+          accion: string
+          created_at: string
+          cuota_id: number
+          fraccionamiento_id: number
+          id: number
+          motivo: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          accion: string
+          created_at?: string
+          cuota_id: number
+          fraccionamiento_id: number
+          id?: number
+          motivo?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          accion?: string
+          created_at?: string
+          cuota_id?: number
+          fraccionamiento_id?: number
+          id?: number
+          motivo?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cuotas_cancelaciones_cuota_id_fkey"
+            columns: ["cuota_id", "fraccionamiento_id"]
+            isOneToOne: false
+            referencedRelation: "cuotas"
+            referencedColumns: ["id", "fraccionamiento_id"]
+          },
+          {
+            foreignKeyName: "cuotas_cancelaciones_fraccionamiento_id_fkey"
             columns: ["fraccionamiento_id"]
             isOneToOne: false
             referencedRelation: "fraccionamientos"
@@ -1377,6 +1431,8 @@ export type Database = {
       cuotas_info: {
         Row: {
           anio: number | null
+          cancelada_en: string | null
+          cancelada_por_nombre: string | null
           concepto: string | null
           concepto_id: number | null
           created_at: string | null
@@ -1392,6 +1448,7 @@ export type Database = {
           mes: number | null
           monto_descuento: number | null
           monto_recargo: number | null
+          motivo_cancelacion: string | null
           periodo: string | null
           residente_principal: string | null
         }
@@ -1628,6 +1685,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      cancelar_cuotas: {
+        Args: { p_cuota_ids: number[]; p_motivo: string }
+        Returns: number
+      }
       cancelar_sincronizaciones: {
         Args: { p_fraccionamiento_id: number }
         Returns: number
@@ -1660,6 +1721,7 @@ export type Database = {
       }
       perfil_deseado: { Args: { p_domicilio_id: number }; Returns: string }
       procesar_reglas_cobro: { Args: never; Returns: undefined }
+      reactivar_cuota: { Args: { p_cuota_id: number }; Returns: number }
       recalcular_permisos_acceso: {
         Args: { p_fraccionamiento_id?: number }
         Returns: number

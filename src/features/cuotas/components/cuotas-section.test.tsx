@@ -1,3 +1,4 @@
+import userEvent from '@testing-library/user-event'
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { CuotaInfo } from '../queries'
@@ -5,6 +6,7 @@ import { CuotasSection } from './cuotas-section'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('../actions', () => ({}))
+vi.mock('../cancelacion-actions', () => ({ cancelarCuotas: vi.fn(), reactivarCuota: vi.fn() }))
 
 const cuota = (id: number, estatus: string): CuotaInfo =>
   ({
@@ -68,5 +70,57 @@ describe('CuotasSection', () => {
     expect(screen.queryByRole('button', { name: /Pagar/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Editar cuota' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Recibo 1' })).toBeInTheDocument()
+  })
+
+  describe('cancelación', () => {
+    const cancelada = {
+      ...cuota(5, 'Cancelado'),
+      estatus_calculado: 'Cancelada',
+      cancelada_en: '2026-11-12T18:00:00Z',
+      motivo_cancelacion: 'Convenio',
+      cancelada_por_nombre: 'Ana Admin',
+    } as CuotaInfo
+    const todas = [cuota(1, 'Pagado'), cuota(2, 'Pendiente'), cuota(3, 'Vencido'), cuota(4, 'En gracia'), cancelada]
+
+    it('admin: casillas en Pendiente/Vencido/En gracia y Cancelada; botones solo con selección', async () => {
+      const user = userEvent.setup()
+      render(<CuotasSection {...props} cuotas={todas} puedeGestionar puedeCancelar />)
+      const fila = (c: string) => screen.getByText(c).closest('tr')!
+      for (const c of ['Cuota 2', 'Cuota 3', 'Cuota 4', 'Cuota 5']) {
+        expect(within(fila(c)).getByRole('checkbox')).toBeInTheDocument()
+      }
+      expect(within(fila('Cuota 1')).queryByRole('checkbox')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Cancelar cuotas/ })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Reactivar/ })).not.toBeInTheDocument()
+      await user.click(within(fila('Cuota 2')).getByRole('checkbox'))
+      expect(screen.getByRole('button', { name: /Cancelar cuotas \(1\)/ })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Reactivar/ })).not.toBeInTheDocument()
+      await user.click(within(fila('Cuota 5')).getByRole('checkbox'))
+      expect(screen.getByRole('button', { name: /Reactivar \(1\)/ })).toBeInTheDocument()
+    })
+
+    it('cancelada: badge, motivo, sin pagar/editar ni botón por fila; chips', () => {
+      render(<CuotasSection {...props} cuotas={todas} puedeGestionar puedeCancelar />)
+      const fila = screen.getByText('Cuota 5').closest('tr')!
+      expect(within(fila).getByText('Cancelada')).toBeInTheDocument()
+      expect(within(fila).getByText(/Cancelada por Ana Admin el .*: Convenio/)).toBeInTheDocument()
+      expect(fila).toHaveClass('opacity-60')
+      expect(within(fila).queryByRole('button', { name: 'Pagar 5' })).not.toBeInTheDocument()
+      expect(within(fila).queryByRole('button', { name: 'Editar cuota' })).not.toBeInTheDocument()
+      expect(within(fila).queryByRole('button', { name: /Reactivar/ })).not.toBeInTheDocument()
+      const chip = (e: string) => screen.getByText(e).closest('[data-slot="stat-chip"]')! as HTMLElement
+      expect(within(chip('Pendientes')).getByText('3')).toBeInTheDocument()
+      expect(within(chip('Canceladas')).getByText('1')).toBeInTheDocument()
+    })
+
+    it('tesorero: sin casillas ni Reactivar; sin canceladas no hay chip', () => {
+      const { unmount } = render(<CuotasSection {...props} cuotas={todas} puedeGestionar />)
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Reactivar' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Cancelar cuotas/ })).not.toBeInTheDocument()
+      unmount()
+      render(<CuotasSection {...props} cuotas={cuotas} puedeGestionar />)
+      expect(screen.queryByText('Canceladas')).not.toBeInTheDocument()
+    })
   })
 })

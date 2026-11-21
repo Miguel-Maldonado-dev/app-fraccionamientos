@@ -181,6 +181,7 @@ export default async function DomicilioDetallePage({ params }: { params: Promise
       <CuotasSection
         domicilioId={domicilioId}
         cuotas={cuotas}
+        puedeCancelar={hasRole(user, [ROLES.ADMINISTRADOR])}
         puedeGestionar={puedeGestionar}
         anios={anios}
         meses={meses}

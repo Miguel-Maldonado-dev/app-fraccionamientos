@@ -10,6 +10,7 @@ const VARIANTS: Record<string, BadgeVariant> = {
   Vencido: 'danger',
   Moroso: 'danger',
   Inactivo: 'neutral',
+  Cancelada: 'neutral',
   Egreso: 'danger',
   Administrador: 'primary',
   Tesorero: 'info',

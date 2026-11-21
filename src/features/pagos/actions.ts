@@ -15,6 +15,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Database } from '@/lib/supabase/types'
 import {
   MSG_CONCEPTO_INVALIDO,
+  MSG_CUOTA_CANCELADA,
   MSG_CUOTA_NO_EXISTE,
   MSG_CUOTA_YA_PAGADA,
   MSG_DOMICILIO_NO_EXISTE,
@@ -53,6 +54,7 @@ export async function registrarPagoCuota(input: PagoCuotaInput): Promise<ActionR
       return fail(MSG_CUOTA_NO_EXISTE)
     }
     if (cuota.estatus === 'Pagado') return fail(MSG_CUOTA_YA_PAGADA)
+    if (cuota.estatus === 'Cancelado' || cuota.estatus_calculado === 'Cancelada') return fail(MSG_CUOTA_CANCELADA)
     const domicilioId = cuota.domicilio_id
 
     // Un intento previo pudo insertar el pago sin llegar a marcar la cuota: no se duplica.
@@ -97,7 +99,11 @@ export async function registrarPagoCuota(input: PagoCuotaInput): Promise<ActionR
       })
       .select('id')
       .single()
-    if (pagoError) throw new Error(pagoError.message)
+    if (pagoError) {
+      // Guard de la base (trigger): carrera entre la lectura de la cuota y el insert.
+      if (pagoError.code === 'P0001' && /cancelada/i.test(pagoError.message)) return fail(MSG_CUOTA_CANCELADA)
+      throw new Error(pagoError.message)
+    }
 
     return marcarPagadaYRevalidar(supabase, cuotaId, domicilioId, { pagoId: pago.id })
   })

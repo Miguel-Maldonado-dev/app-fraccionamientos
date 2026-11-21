@@ -7,3 +7,8 @@ export const MSG_SOLO_PENDIENTES = 'Solo se pueden editar cuotas pendientes o ve
 export const MSG_CUOTA_NO_EXISTE = 'La cuota no existe.'
 export const MSG_DESCUENTO_ELIMINADO = 'Descuento eliminado correctamente.'
 export const MSG_RECARGO_ELIMINADO = 'Recargo eliminado correctamente.'
+export const MSG_CUOTAS_NO_CANCELABLES =
+  'Solo se pueden cancelar cuotas pendientes o vencidas, sin pago, de un mismo domicilio.'
+export const MSG_CUOTA_NO_CANCELADA = 'La cuota no existe o no está cancelada.'
+export const MSG_CUOTA_REACTIVADA = 'Cuota reactivada correctamente.'
+export const msgCuotasCanceladas = (n: number) => (n === 1 ? '1 cuota cancelada' : `${n} cuotas canceladas`)

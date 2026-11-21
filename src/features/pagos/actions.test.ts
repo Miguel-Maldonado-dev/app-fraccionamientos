@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { callsOf, fakeQuery, fakeSupabase } from '@/test/fake-query'
 import { getDomicilioInfo } from '@/features/domicilios/queries'
 import { registrarPagoCuota, registrarPagoExtra } from './actions'
-import { MSG_CUOTA_YA_PAGADA, MSG_PAGO_SIN_MARCAR } from './messages'
+import { MSG_CUOTA_CANCELADA, MSG_CUOTA_YA_PAGADA, MSG_PAGO_SIN_MARCAR } from './messages'
 import { getConceptoPago, getPagoIdPorCuota } from './queries'
 import { parseRecibo } from './recibo/datos'
 import { instalacionDe, recalcularPermisos } from '@/features/sincronizacion/cola'
@@ -382,4 +382,21 @@ test('pago extra: rol Comite no puede registrar', async () => {
   expect(await registrarPagoExtra(inputExtra)).toEqual({ ok: false, error: MSG_NO_PERMISO })
   expect(getConceptoPago).not.toHaveBeenCalled()
   expect(callsOf(pagos, 'insert')).toHaveLength(0)
+})
+
+test('cuota cancelada: error claro y no inserta el pago', async () => {
+  const { pagos } = setup({ cuota: { ...cuotaPendiente, estatus: 'Cancelado', estatus_calculado: 'Cancelada' } })
+  const r = await registrarPagoCuota(input)
+  expect(r).toEqual({ ok: false, error: MSG_CUOTA_CANCELADA })
+  expect(pagos.calls).toHaveLength(0)
+})
+
+test('el guard de la base (P0001 cancelada) se traduce al mensaje', async () => {
+  const { supabase } = setup()
+  vi.mocked(supabase.from).mockImplementation(((t: string) =>
+    t === 'pagos'
+      ? fakeQuery({ error: { code: 'P0001', message: 'La cuota está cancelada y no se puede pagar' } })
+      : fakeQuery({})) as never)
+  const r = await registrarPagoCuota(input)
+  expect(r).toEqual({ ok: false, error: MSG_CUOTA_CANCELADA })
 })

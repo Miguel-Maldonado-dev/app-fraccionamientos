@@ -15,28 +15,19 @@ import {
 } from '../../src/lib/domicilio'
 import { useApariencia, useEstilos, useTema } from '../../src/lib/apariencia'
 import { espacio, fuentes, radio, type Esquema, type Paleta } from '../../src/lib/tema'
+import { colorChipEstatus } from '../../src/lib/estatus-colores'
 import { debeCerrarSesion } from '../../src/lib/auth'
 import { mensajeDeCarga, useCarga } from '../../src/lib/use-carga'
 import { useDomicilio } from '../../src/sesion'
 
 type ColorChip = { fondo: string; texto: string }
 
-function coloresEstatus(colores: Paleta, esquema: Esquema): Record<string, ColorChip> {
-  const oscuro = esquema === 'oscuro'
-  return {
-    Pagado: { fondo: colores.exitoSuave, texto: colores.exito },
-    Pendiente: { fondo: colores.azulSuave, texto: colores.primario },
-    'En gracia': oscuro ? { fondo: '#3A2E12', texto: '#F0B84D' } : { fondo: '#FFF6E5', texto: '#9A6200' },
-    Vencido: { fondo: colores.errorSuave, texto: colores.error },
-  }
-}
-
 function Estatus({ cuota }: { cuota: Cuota }) {
   const styles = useEstilos(crearEstilos)
   const colores = useTema()
   const { esquema } = useApariencia()
   const e = cuota.estatus_calculado ?? '—'
-  const c = coloresEstatus(colores, esquema)[e] ?? { fondo: colores.fondo, texto: colores.secundario }
+  const c = colorChipEstatus(e, colores, esquema)
   return (
     <View style={[styles.chip, { backgroundColor: c.fondo }]}>
       <Text style={[styles.chipTexto, { color: c.texto }]}>{e}</Text>

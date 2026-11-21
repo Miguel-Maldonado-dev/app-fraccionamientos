@@ -67,6 +67,20 @@ test('cuotas con periodo, importe y estatus filtradas por domicilio', async () =
   expect(q.eq).toHaveBeenCalledWith('domicilio_id', 12)
 })
 
+test('cuota Cancelada se muestra con chip "Cancelada"', async () => {
+  servir()
+  from.mockImplementation(
+    tablas({
+      cuotas_info: [
+        { id: 2, periodo: 'Dic 2026', concepto: 'Mantenimiento', importe_cuota: 1500, fecha_vencimiento: '2026-12-10', estatus_calculado: 'Cancelada' },
+      ],
+      pagos_info: [],
+    }),
+  )
+  await montar()
+  expect(screen.getByText('Cancelada')).toBeTruthy()
+})
+
 test('pago sin recibo no tiene "Ver"; con recibo abre la pantalla de recibo', async () => {
   servir()
   await montar()

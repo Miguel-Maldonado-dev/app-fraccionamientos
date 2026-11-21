@@ -12,3 +12,4 @@ export const MSG_PAGO_SIN_MARCAR =
   'El pago se registró pero no fue posible marcar la cuota como pagada. No registres el pago de nuevo; recarga la página.'
 export const MSG_CONCEPTO_INVALIDO = 'Concepto inválido.'
 export const MSG_DOMICILIO_NO_EXISTE = 'El domicilio no existe.'
+export const MSG_CUOTA_CANCELADA = 'Esta cuota está cancelada y no se puede pagar'
